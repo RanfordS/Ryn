@@ -20,3 +20,4 @@ typedef struct s_Tokenizer
 Tokenizer;
 
 extern bool tokenize (Tokenizer* tokenizer, TokenList* list);
+extern Tokenizer tokenizerCreate (char* path, size_t length, char* data);
