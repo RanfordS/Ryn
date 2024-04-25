@@ -4,6 +4,52 @@
 #include "stringlib.h"
 #include "operator.h"
 
+static void bracketPush (Tokenizer* tokenizer, TokenList* list)
+{
+    size_t i = tokenizer->bracketDepth++;
+    if (tokenizer->bracketStackSize < tokenizer->bracketDepth)
+    {
+        size_t size = tokenizer->bracketStackSize *= 2;
+        tokenizer->bracketStackType =
+            realloc (tokenizer->bracketStackType,
+                size*sizeof (*tokenizer->bracketStackType));
+        tokenizer->bracketIndex =
+            realloc (tokenizer->bracketIndex,
+                size*sizeof (*tokenizer->bracketIndex));
+    }
+    tokenizer->bracketStackType[i] = tokenizer->currentToken.id;
+    tokenizer->bracketIndex[i] = list->count;
+}
+
+static bool bracketPop (Tokenizer* tokenizer, TokenList* list)
+{
+    if (tokenizer->bracketDepth == 0)
+    {
+        //TODO: Proper handling of mismatched brackets.
+        return false;
+    }
+
+    Operator lhs = list->list[tokenizer->bracketIndex[--tokenizer->bracketDepth]].id;
+    Operator rhs = tokenizer->currentToken.id;
+
+    switch (lhs)
+    {
+        case OPERATOR_PAREN_OPEN:
+        case OPERATOR_MACRO_OPEN:
+            return rhs == OPERATOR_PAREN_CLOSE;
+
+        case OPERATOR_ARRAY_INDEX_OPEN:
+        case OPERATOR_BIT_INDEX_OPEN:
+            return rhs == OPERATOR_INDEX_CLOSE;
+
+        case OPERATOR_BLOCK_OPEN:
+            return rhs == OPERATOR_BLOCK_CLOSE;
+    }
+    // Shouldn't get here.
+    return false;
+}
+
+
 static void tokenStart (Tokenizer* tokenizer, size_t i, TokenType type)
 {
     tokenizer->currentToken.tokenType = type;
@@ -30,6 +76,18 @@ static void tokenPush (Tokenizer* tokenizer, TokenList* list)
                 }
             }
             break;
+
+        case TOKEN_TYPE_OPERATOR:
+            OperatorFlags flags = operatorFlags[token->id];
+            if (flags & BRACKET_OPEN)
+            {
+                bracketPush (tokenizer, list);
+            }
+            if (flags & BRACKET_CLOSE)
+            {
+                bracketPop (tokenizer, list);
+            }
+            break;
     }
     tokenListAppend (list, *token);
     tokenizer->currentToken = (Token){};
@@ -44,6 +102,25 @@ enum
     TOKENIZER_END_AFTER,
 };
 typedef uint8_t TokenizerCode;
+
+
+
+#define TOKENIZER_INITIAL_BRACKET_STACK_SIZE 32
+
+Tokenizer tokenizerCreate (char* path, size_t length, char* data)
+{
+    const size_t bSize = TOKENIZER_INITIAL_BRACKET_STACK_SIZE;
+    Tokenizer new =
+    {
+        .sourcePath = path,
+        .sourceData = data,
+        .sourceLength = length,
+        .bracketStackSize = bSize,
+        .bracketIndex = malloc (bSize*sizeof (new.bracketIndex)),
+        .bracketStackType = malloc (bSize*sizeof (new.bracketStackType)),
+    };
+    return new;
+}
 
 
 
@@ -133,8 +210,8 @@ static TOKENIZER_STATE(operator)
     {
         size_t previewLen = i + 1 - tokenizer->currentToken.index;
         bool found = false;
-        uint16_t operator;
-        for (size_t j = 0; j < OPERATOR_COUNT; ++j)
+        Operator operator;
+        for (size_t j = tokenizer->currentToken.id; j < OPERATOR_COUNT; ++j)
         {
             if (nstringMatchCstring (
                     previewLen, tokenizer->currentToken.str,
@@ -152,20 +229,8 @@ static TOKENIZER_STATE(operator)
                 tokenizer->commentDepth = 1;
                 tokenizer->currentToken.tokenType = TOKEN_TYPE_COMMENT;
             }
+            tokenizer->currentToken.id = operator;
             return TOKENIZER_CONTINUE;
-        }
-
-        OperatorFlags flags = operatorFlags[operator];
-        if (flags & BRACKET_OPEN)
-        {
-            ++tokenizer->bracketDepth;
-        }
-        if (flags & BRACKET_CLOSE)
-        {
-            if (!tokenizer->bracketDepth--)
-            {
-                //TODO: Handle mismatching brackets error.
-            }
         }
     }
     return TOKENIZER_END_NOW;

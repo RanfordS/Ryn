@@ -53,9 +53,9 @@ enum
     TOKEN_TYPE_COUNT,
 #undef X
 };
+typedef uint8_t TokenType;
 
 extern const char* const tokenType[TOKEN_TYPE_COUNT];
-typedef uint8_t TokenType;
 
 enum
 {
@@ -82,6 +82,10 @@ typedef struct s_Token
     TokenType tokenType;
     //! Some error info goes in here.
     TokenFlags tokenFlags;
+    //! For operators, index of the left-hand argument
+    size_t leftIndex;
+    //! For operators, index of the right-hand argument
+    size_t rightIndex;
 }
 Token;
 

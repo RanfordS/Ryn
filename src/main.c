@@ -62,10 +62,7 @@ int main (int argc, char** argv)
     char* data = readFile (argv[1], &dataLength);
     if (!data) { return -1; }
 
-    Tokenizer tokenizer = {
-        .sourceData = data,
-        .sourceLength = dataLength,
-    };
+    Tokenizer tokenizer = tokenizerCreate (argv[1], dataLength, data);
 
     TokenList tokenList = tokenListCreate (256);
 

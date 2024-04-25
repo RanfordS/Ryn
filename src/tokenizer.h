@@ -1,5 +1,6 @@
 #pragma once
 #include "token.h"
+#include "operator.h"
 
 typedef struct s_Tokenizer
 {
@@ -11,6 +12,9 @@ typedef struct s_Tokenizer
     size_t col;
     size_t commentDepth;
     size_t bracketDepth;
+    size_t bracketStackSize;
+    Operator* bracketStackType;
+    size_t* bracketIndex;
     bool escape;
 }
 Tokenizer;

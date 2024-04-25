@@ -15,7 +15,7 @@ TokenList tokenListCreate (size_t size)
     {
         .size = size,
         .count = 0,
-        .list = calloc (size, sizeof (Token)),
+        .list = malloc (size*sizeof (*new.list)),
     };
     return new;
 }
