@@ -1,0 +1,10 @@
+using "print";
+
+(* This is a standard `main` function *)
+main :: Func argc Int argv [argc]CString -> Int
+{
+    print "Hello World\n";
+    return 0;
+}
+
+providing main;
