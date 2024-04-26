@@ -21,32 +21,45 @@ static void bracketPush (Tokenizer* tokenizer, TokenList* list)
     tokenizer->bracketIndex[i] = list->count;
 }
 
-static bool bracketPop (Tokenizer* tokenizer, TokenList* list)
+static TokenizerCode bracketPop (Tokenizer* tokenizer, TokenList* list)
 {
     if (tokenizer->bracketDepth == 0)
     {
-        //TODO: Proper handling of mismatched brackets.
-        return false;
+        return TOKENIZER_ERROR_TOO_MANY_CLOSING_BRACKETS;
     }
 
-    Operator lhs = list->list[tokenizer->bracketIndex[--tokenizer->bracketDepth]].id;
-    Operator rhs = tokenizer->currentToken.id;
+    size_t lhsListIndex = tokenizer->bracketIndex[--tokenizer->bracketDepth];
+    size_t rhsListIndex = list->count;
+    Token* lhsToken = list->list + lhsListIndex;
+    Token* rhsToken = &tokenizer->currentToken;
+
+    lhsToken->leftIndex = rhsListIndex;
+    rhsToken->leftIndex = lhsListIndex;
+
+    Operator lhs = lhsToken->id;
+    Operator rhs = rhsToken->id;
 
     switch (lhs)
     {
         case OPERATOR_PAREN_OPEN:
         case OPERATOR_MACRO_OPEN:
-            return rhs == OPERATOR_PAREN_CLOSE;
+            return rhs == OPERATOR_PAREN_CLOSE
+                ? TOKENIZER_CONTINUE
+                : TOKENIZER_ERROR_MISMATCHED_BRACKET;
 
         case OPERATOR_ARRAY_INDEX_OPEN:
         case OPERATOR_BIT_INDEX_OPEN:
-            return rhs == OPERATOR_INDEX_CLOSE;
+            return rhs == OPERATOR_INDEX_CLOSE
+                ? TOKENIZER_CONTINUE
+                : TOKENIZER_ERROR_MISMATCHED_BRACKET;
 
         case OPERATOR_BLOCK_OPEN:
-            return rhs == OPERATOR_BLOCK_CLOSE;
+            return rhs == OPERATOR_BLOCK_CLOSE
+                ? TOKENIZER_CONTINUE
+                : TOKENIZER_ERROR_MISMATCHED_BRACKET;
     }
-    // Shouldn't get here.
-    return false;
+
+    return TOKENIZER_ERROR_UNHANDLED_BRACKET_TYPE;
 }
 
 
@@ -59,7 +72,7 @@ static void tokenStart (Tokenizer* tokenizer, size_t i, TokenType type)
     tokenizer->currentToken.index = i;
 }
 
-static void tokenPush (Tokenizer* tokenizer, TokenList* list)
+static TokenizerCode tokenPush (Tokenizer* tokenizer, TokenList* list)
 {
     Token* token = &tokenizer->currentToken;
     switch (token->tokenType)
@@ -85,23 +98,18 @@ static void tokenPush (Tokenizer* tokenizer, TokenList* list)
             }
             if (flags & BRACKET_CLOSE)
             {
-                bracketPop (tokenizer, list);
+                TokenizerCode error = bracketPop (tokenizer, list);
+                if (error)
+                {
+                    return error;
+                }
             }
             break;
     }
     tokenListAppend (list, *token);
     tokenizer->currentToken = (Token){};
+    return TOKENIZER_CONTINUE;
 }
-
-
-
-enum
-{
-    TOKENIZER_CONTINUE,
-    TOKENIZER_END_NOW,
-    TOKENIZER_END_AFTER,
-};
-typedef uint8_t TokenizerCode;
 
 
 
@@ -182,13 +190,14 @@ static TOKENIZER_STATE(unknown)
 
 static TOKENIZER_STATE(generic)
 {
+    (void)i; (void)c;
     if (class & (CHAR_FLAG_LETTER | CHAR_FLAG_NUMBER))
     {
         // generics are only one letter long, this is more
         tokenizer->currentToken.tokenType = TOKEN_TYPE_TYPE;
         return TOKENIZER_CONTINUE;
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -199,7 +208,7 @@ static TOKENIZER_STATE(noun)
     {
         return TOKENIZER_CONTINUE;
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -233,7 +242,7 @@ static TOKENIZER_STATE(operator)
             return TOKENIZER_CONTINUE;
         }
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -256,11 +265,11 @@ static TOKENIZER_STATE(comment)
 
         case ')':
             if (data[i - 1] == '*'
-            &&  data[i - 2] != '(')
+            &&  data[i - 2] != '(') // )
             {
                 if (!--tokenizer->commentDepth)
                 {
-                    return TOKENIZER_END_AFTER;
+                    return TOKENIZER_END_TOKEN_AFTER;
                 }
             }
             return TOKENIZER_CONTINUE;
@@ -283,7 +292,7 @@ static TOKENIZER_STATE(string)
         }
         else if (c == '"')
         {
-            return TOKENIZER_END_AFTER;
+            return TOKENIZER_END_TOKEN_AFTER;
         }
     }
     return TOKENIZER_CONTINUE;
@@ -296,7 +305,7 @@ static TOKENIZER_STATE(character)
     if (tokenizer->escape)
     {
         tokenizer->escape = false;
-        return TOKENIZER_END_AFTER;
+        return TOKENIZER_END_TOKEN_AFTER;
     }
     else
     {
@@ -306,7 +315,7 @@ static TOKENIZER_STATE(character)
         }
         else
         {
-            return TOKENIZER_END_AFTER;
+            return TOKENIZER_END_TOKEN_AFTER;
         }
     }
     return TOKENIZER_CONTINUE;
@@ -347,7 +356,7 @@ static TOKENIZER_STATE(zero)
 
             default:
                 //TODO: Handle error condition of invalid letter in number.
-                return TOKENIZER_END_NOW;
+                return TOKENIZER_END_TOKEN_NOW;
         }
 
         tokenizer->currentToken.tokenType = newType;
@@ -356,13 +365,13 @@ static TOKENIZER_STATE(zero)
     else if (class & CHAR_FLAG_NUMBER)
     {
         //TODO: Handle error condition of zero followed by another number.
-        return TOKENIZER_END_NOW;
+        return TOKENIZER_END_TOKEN_NOW;
     }
     else if (c == '.')
     {
         tokenizer->currentToken.tokenType = TOKEN_TYPE_LITERAL_DECIMAL;
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
     
@@ -401,7 +410,7 @@ static TOKENIZER_STATE(number)
 
             default:
                 //TODO: Handle error condition of invalid specifier.
-                return TOKENIZER_END_NOW;
+                return TOKENIZER_END_TOKEN_NOW;
         }
 
         tokenizer->currentToken.tokenType = newType;
@@ -413,7 +422,7 @@ static TOKENIZER_STATE(number)
         tokenizer->currentToken.tokenType = TOKEN_TYPE_LITERAL_DECIMAL;
         return TOKENIZER_CONTINUE;
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -428,7 +437,7 @@ static TOKENIZER_STATE(decimal)
     if (tokenizer->sourceData[i - 1] == '.')
     {
         //TODO: Handle error of invalid character after decimal point.
-        return TOKENIZER_END_NOW;
+        return TOKENIZER_END_TOKEN_NOW;
     }
 
     if (class & CHAR_FLAG_LETTER)
@@ -446,12 +455,12 @@ static TOKENIZER_STATE(decimal)
 
             default:
                 //TODO: Handle error of invalid specifier.
-                return TOKENIZER_END_NOW;
+                return TOKENIZER_END_TOKEN_NOW;
         }
 
         tokenizer->currentToken.tokenType = newType;
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -474,12 +483,12 @@ static TOKENIZER_STATE(exponential)
             if (!prevIsNumber)
             {
                 //TODO: Handle error of exponent having no numbers.
-                return TOKENIZER_END_NOW;
+                return TOKENIZER_END_TOKEN_NOW;
             }
             tokenizer->currentToken.tokenType = c == 'f' ?
                 TOKEN_TYPE_LITERAL_EXPONENTIAL_FLOAT :
                 TOKEN_TYPE_LITERAL_EXPONENTIAL_DOUBLE;
-            return TOKENIZER_END_AFTER;
+            return TOKENIZER_END_TOKEN_AFTER;
 
         case '-':
         case '+':
@@ -487,21 +496,21 @@ static TOKENIZER_STATE(exponential)
             {
                 return TOKENIZER_CONTINUE;
             }
-            return TOKENIZER_END_NOW;
+            return TOKENIZER_END_TOKEN_NOW;
     }
 
     if (class & CHAR_FLAG_LETTER)
     {
         //TODO: Handle error of unexpected letter in number.
-        return TOKENIZER_END_NOW;
+        return TOKENIZER_END_TOKEN_NOW;
     }
 
     if (charClassifier (prev) & CHAR_FLAG_NUMBER)
     {
-        return TOKENIZER_END_NOW;
+        return TOKENIZER_END_TOKEN_NOW;
     }
     //TODO: Handle error of exponent having no numbers.
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 static TOKENIZER_STATE(typeGiven)
@@ -511,7 +520,7 @@ static TOKENIZER_STATE(typeGiven)
         if (c == '0')
         {
             //TODO: Handle error of type size starting with 0.
-            return TOKENIZER_END_NOW;
+            return TOKENIZER_END_TOKEN_NOW;
         }
         ++tokenizer->currentToken.tokenType;
         return TOKENIZER_CONTINUE;
@@ -520,10 +529,10 @@ static TOKENIZER_STATE(typeGiven)
     if (class & CHAR_FLAG_LETTER)
     {
         //TODO: Handle error of letter in type size.
-        return TOKENIZER_END_NOW;
+        return TOKENIZER_END_TOKEN_NOW;
     }
 
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -538,9 +547,9 @@ static TOKENIZER_STATE(sizeGiven)
     if (class & CHAR_FLAG_LETTER)
     {
         //TODO: Handle error of letter in type size.
-        return TOKENIZER_END_NOW;
+        return TOKENIZER_END_TOKEN_NOW;
     }
-    return TOKENIZER_END_NOW;
+    return TOKENIZER_END_TOKEN_NOW;
 }
 
 
@@ -579,7 +588,7 @@ static TOKENIZER_STATE((*handlers[TOKEN_TYPE_COUNT])) =
     [TOKEN_TYPE_LITERAL_EXPONENTIAL_FLOAT_SPECIFIED] = sizeGiven,
 };
 
-bool tokenize (Tokenizer* tokenizer, TokenList* list)
+TokenizerCode tokenize (Tokenizer* tokenizer, TokenList* list)
 {
     printf ("Tokenizing\n");
     for (size_t i = 0; i < tokenizer->sourceLength; ++i)
@@ -610,23 +619,32 @@ bool tokenize (Tokenizer* tokenizer, TokenList* list)
             printf ("Unhandled token type %s\n", tokenType[type]);
             exit (-1);
         }
-        TokenizerCode res = handler (tokenizer, i, c, class);
-        switch (res)
+        TokenizerCode result = handler (tokenizer, i, c, class);
+        switch (result)
         {
             case TOKENIZER_CONTINUE:
                 break;
 
-            case TOKENIZER_END_NOW:
+            case TOKENIZER_END_TOKEN_NOW:
                 tokenizer->currentToken.len =
                     i - tokenizer->currentToken.index;
-                tokenPush (tokenizer, list);
+                if (tokenPush (tokenizer, list))
+                {
+                    return 1;
+                }
                 goto rerun;
 
-            case TOKENIZER_END_AFTER:
+            case TOKENIZER_END_TOKEN_AFTER:
                 tokenizer->currentToken.len =
                     i + 1 - tokenizer->currentToken.index;
-                tokenPush (tokenizer, list);
+                if (tokenPush (tokenizer, list))
+                {
+                    return 1;
+                }
                 break;
+
+            default:
+                return result;
         }
     }
     return false;
