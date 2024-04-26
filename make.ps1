@@ -1,6 +1,6 @@
 # $ for variable, `$ for literal dollar
 $dest = "Ryn.exe"
-$flags = "-fstack-protector-all", "-fcf-protection=full", "-fverbose-asm", "-Wall", "-Wextra"
+$flags = "-fstack-protector-all", "-fcf-protection=full", "-fverbose-asm", "-Wall", "-Wextra", "-Wno-unused-parameter"
 
 Write-Host "Running build"
 $basepath = (Get-Location).Path
