@@ -99,3 +99,4 @@ TokenList;
 
 extern TokenList tokenListCreate (size_t size);
 extern void tokenListAppend (TokenList* tokenList, Token token);
+extern void tokenListPrint (const TokenList* tokenList);
