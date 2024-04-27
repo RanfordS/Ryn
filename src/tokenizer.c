@@ -6,6 +6,7 @@
 
 static void bracketPush (Tokenizer* tokenizer, TokenList* list)
 {
+    printf ("Bracket push\n");
     size_t i = tokenizer->bracketDepth++;
     if (tokenizer->bracketStackSize < tokenizer->bracketDepth)
     {
@@ -23,6 +24,7 @@ static void bracketPush (Tokenizer* tokenizer, TokenList* list)
 
 static TokenizerCode bracketPop (Tokenizer* tokenizer, TokenList* list)
 {
+    printf ("Bracket pop\n");
     if (tokenizer->bracketDepth == 0)
     {
         return TOKENIZER_ERROR_TOO_MANY_CLOSING_BRACKETS;
@@ -182,6 +184,13 @@ static TOKENIZER_STATE(unknown)
     if (newType != TOKEN_TYPE_UNKNOWN)
     {
         tokenStart (tokenizer, i, newType);
+        if (newType == TOKEN_TYPE_OPERATOR)
+        {
+            Token* token = &tokenizer->currentToken;
+            Operator op = 0;
+            operatorFind (0, 1, token->str, &op);
+            token->id = op;
+        }
     }
     return TOKENIZER_CONTINUE;
 }
@@ -218,19 +227,11 @@ static TOKENIZER_STATE(operator)
     if (class & CHAR_FLAG_OPERATOR)
     {
         size_t previewLen = i + 1 - tokenizer->currentToken.index;
-        bool found = false;
         Operator operator;
-        for (size_t j = tokenizer->currentToken.id; j < OPERATOR_COUNT; ++j)
-        {
-            if (nstringMatchCstring (
-                    previewLen, tokenizer->currentToken.str,
-                    operators[j]))
-            {
-                found = true;
-                operator = j;
-                break;
-            }
-        }
+        bool found = operatorFind (
+                tokenizer->currentToken.id, 
+                previewLen, tokenizer->currentToken.str,
+                &operator);
         if (found)
         {
             if (operator == OPERATOR_COMMENT_OPEN)

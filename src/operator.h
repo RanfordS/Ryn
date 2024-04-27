@@ -16,6 +16,7 @@ typedef uint8_t OperatorFlags;
     X("!",LOGICAL_NOT,SUFFIX)\
     X("!=",NOT_EQ,SUFFIX)\
     X("#",ARG_SPEC,PREFIX)\
+    X("#>",FEED,INFIX)\
     X("%",MOD,PREFIX|INFIX)\
     X("%=",MOD_ASSIGN,INFIX)\
     X("&",REF_SLASH_BIT_AND,PREFIX|INFIX)\
@@ -91,4 +92,5 @@ typedef uint8_t Operator;
 
 extern const char* const operators[OPERATOR_COUNT];
 extern const uint8_t operatorFlags[OPERATOR_COUNT];
+extern bool operatorFind (Operator searchStart, uint8_t opLen, char* opStr, Operator* result);
 
