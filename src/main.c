@@ -73,6 +73,7 @@ int main (int argc, char** argv)
     {
         Token token = tokenList.list[t];
         printf ("0x%04llX[%03llu,%02llu] - %s `%.*s`\n", t, token.line, token.col, tokenType[token.tokenType], token.len, token.str);
+        printf ("- leftIndex %04llX\n", token.leftIndex);
     }
 
     free (data);
