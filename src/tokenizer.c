@@ -356,8 +356,7 @@ static TOKENIZER_STATE(zero)
                 break;
 
             default:
-                //TODO: Handle error condition of invalid letter in number.
-                return TOKENIZER_END_TOKEN_NOW;
+                return TOKENIZER_ERROR_INVALID_SPECIFIER;
         }
 
         tokenizer->currentToken.tokenType = newType;
@@ -365,8 +364,7 @@ static TOKENIZER_STATE(zero)
     }
     else if (class & CHAR_FLAG_NUMBER)
     {
-        //TODO: Handle error condition of zero followed by another number.
-        return TOKENIZER_END_TOKEN_NOW;
+        return TOKENIZER_ERROR_ZERO_FOLLOWED_BY_NONZERO;
     }
     else if (c == '.')
     {
@@ -410,8 +408,7 @@ static TOKENIZER_STATE(number)
                 break;
 
             default:
-                //TODO: Handle error condition of invalid specifier.
-                return TOKENIZER_END_TOKEN_NOW;
+                return TOKENIZER_ERROR_INVALID_SPECIFIER;
         }
 
         tokenizer->currentToken.tokenType = newType;
@@ -428,6 +425,118 @@ static TOKENIZER_STATE(number)
 
 
 
+static TOKENIZER_STATE(binary)
+{
+    if (c == '0' ||  c == '1')
+    {
+        return TOKENIZER_CONTINUE;
+    }
+    
+    if (class & CHAR_FLAG_LETTER)
+    {
+        TokenType newType;
+        switch (c)
+        {
+            case 'u':
+                newType = TOKEN_TYPE_LITERAL_BINARY_UNSIGNED;
+                break;
+
+            case 'i':
+                newType = TOKEN_TYPE_LITERAL_BINARY_INTEGER;
+                break;
+
+            default:
+                return TOKENIZER_ERROR_INVALID_SPECIFIER;
+        }
+
+        tokenizer->currentToken.tokenType = newType;
+        return TOKENIZER_CONTINUE;
+    }
+
+    if (class & CHAR_FLAG_NUMBER)
+    {
+        return TOKENIZER_ERROR_INVALID_NUMBER_IN_BINARY;
+    }
+    return TOKENIZER_END_TOKEN_NOW;
+}
+
+
+
+static TOKENIZER_STATE(octal)
+{
+    if ('0' <= c && c <= '7')
+    {
+        return TOKENIZER_CONTINUE;
+    }
+    
+    if (class & CHAR_FLAG_LETTER)
+    {
+        TokenType newType;
+        switch (c)
+        {
+            case 'u':
+                newType = TOKEN_TYPE_LITERAL_OCTAL_UNSIGNED;
+                break;
+
+            case 'i':
+                newType = TOKEN_TYPE_LITERAL_OCTAL_INTEGER;
+                break;
+
+            default:
+                return TOKENIZER_ERROR_INVALID_SPECIFIER;
+        }
+
+        tokenizer->currentToken.tokenType = newType;
+        return TOKENIZER_CONTINUE;
+    }
+
+    if (class & CHAR_FLAG_NUMBER)
+    {
+        return TOKENIZER_ERROR_INVALID_NUMBER_IN_OCTAL;
+    }
+    return TOKENIZER_END_TOKEN_NOW;
+}
+
+
+
+static TOKENIZER_STATE(hexadecimal)
+{
+    if (('A' <= c && c <= 'F')
+    ||  class & CHAR_FLAG_NUMBER)
+    {
+        return TOKENIZER_CONTINUE;
+    }
+    
+    if (class & CHAR_FLAG_LETTER)
+    {
+        TokenType newType;
+        switch (c)
+        {
+            case 'u':
+                newType = TOKEN_TYPE_LITERAL_HEXADECIMAL_UNSIGNED;
+                break;
+
+            case 'i':
+                newType = TOKEN_TYPE_LITERAL_HEXADECIMAL_INTEGER;
+                break;
+
+            default:
+                return TOKENIZER_ERROR_INVALID_SPECIFIER;
+        }
+
+        tokenizer->currentToken.tokenType = newType;
+        return TOKENIZER_CONTINUE;
+    }
+
+    if (class & CHAR_FLAG_NUMBER)
+    {
+        return TOKENIZER_ERROR_INVALID_NUMBER_IN_HEXADECIMAL;
+    }
+    return TOKENIZER_END_TOKEN_NOW;
+}
+
+
+
 static TOKENIZER_STATE(decimal)
 {
     if (class & CHAR_FLAG_NUMBER)
@@ -437,8 +546,7 @@ static TOKENIZER_STATE(decimal)
 
     if (tokenizer->sourceData[i - 1] == '.')
     {
-        //TODO: Handle error of invalid character after decimal point.
-        return TOKENIZER_END_TOKEN_NOW;
+        return TOKENIZER_ERROR_INVALID_CHARACTER_AFTER_DECIMAL_POINT;
     }
 
     if (class & CHAR_FLAG_LETTER)
@@ -455,8 +563,7 @@ static TOKENIZER_STATE(decimal)
                 break;
 
             default:
-                //TODO: Handle error of invalid specifier.
-                return TOKENIZER_END_TOKEN_NOW;
+                return TOKENIZER_ERROR_INVALID_SPECIFIER;
         }
 
         tokenizer->currentToken.tokenType = newType;
@@ -483,8 +590,7 @@ static TOKENIZER_STATE(exponential)
         case 'd':
             if (!prevIsNumber)
             {
-                //TODO: Handle error of exponent having no numbers.
-                return TOKENIZER_END_TOKEN_NOW;
+                return TOKENIZER_ERROR_EXPONENT_MISSING;
             }
             tokenizer->currentToken.tokenType = c == 'f' ?
                 TOKEN_TYPE_LITERAL_EXPONENTIAL_FLOAT :
@@ -502,16 +608,14 @@ static TOKENIZER_STATE(exponential)
 
     if (class & CHAR_FLAG_LETTER)
     {
-        //TODO: Handle error of unexpected letter in number.
-        return TOKENIZER_END_TOKEN_NOW;
+        return TOKENIZER_ERROR_INVALID_SPECIFIER;
     }
 
     if (charClassifier (prev) & CHAR_FLAG_NUMBER)
     {
         return TOKENIZER_END_TOKEN_NOW;
     }
-    //TODO: Handle error of exponent having no numbers.
-    return TOKENIZER_END_TOKEN_NOW;
+    return TOKENIZER_ERROR_EXPONENT_MISSING;
 }
 
 static TOKENIZER_STATE(typeGiven)
@@ -520,8 +624,7 @@ static TOKENIZER_STATE(typeGiven)
     {
         if (c == '0')
         {
-            //TODO: Handle error of type size starting with 0.
-            return TOKENIZER_END_TOKEN_NOW;
+            return TOKENIZER_ERROR_SPECIFIER_SIZE_STARTS_WITH_ZERO;
         }
         ++tokenizer->currentToken.tokenType;
         return TOKENIZER_CONTINUE;
@@ -529,8 +632,7 @@ static TOKENIZER_STATE(typeGiven)
     
     if (class & CHAR_FLAG_LETTER)
     {
-        //TODO: Handle error of letter in type size.
-        return TOKENIZER_END_TOKEN_NOW;
+        return TOKENIZER_ERROR_UNEXPECTED_CHARACTER_IN_SIZE_SPECIFIER;
     }
 
     return TOKENIZER_END_TOKEN_NOW;
@@ -547,8 +649,7 @@ static TOKENIZER_STATE(sizeGiven)
 
     if (class & CHAR_FLAG_LETTER)
     {
-        //TODO: Handle error of letter in type size.
-        return TOKENIZER_END_TOKEN_NOW;
+        return TOKENIZER_ERROR_UNEXPECTED_CHARACTER_IN_SIZE_SPECIFIER;
     }
     return TOKENIZER_END_TOKEN_NOW;
 }
@@ -567,6 +668,9 @@ static TOKENIZER_STATE((*handlers[TOKEN_TYPE_COUNT])) =
     [TOKEN_TYPE_LITERAL_CHAR] = character,
     [TOKEN_TYPE_LITERAL_ZERO] = zero,
     [TOKEN_TYPE_LITERAL_NUMBER] = number,
+    [TOKEN_TYPE_LITERAL_BINARY] = binary,
+    [TOKEN_TYPE_LITERAL_OCTAL] = octal,
+    [TOKEN_TYPE_LITERAL_HEXADECIMAL] = hexadecimal,
     [TOKEN_TYPE_LITERAL_DECIMAL] = decimal,
     [TOKEN_TYPE_LITERAL_EXPONENTIAL] = exponential,
     [TOKEN_TYPE_LITERAL_INTEGER] = typeGiven,
