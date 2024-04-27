@@ -1,0 +1,23 @@
+Struct :: OperatorData
+{
+    op String
+    name String
+}
+
+operator_data :: [operator_count]OperatorData
+{
+    { #op="+" #name="add" },
+    { #op="-" #name="sub" },
+    { #op="*" #name="mul" },
+    { #op="/" #name="div" },
+}
+
+\for i :: 0 -> operator_count
+{
+    \using operator_data[i];
+    int_\(name) :: Func a b Int -> Int
+    {
+        return a \(op) b;
+    }
+}
+
