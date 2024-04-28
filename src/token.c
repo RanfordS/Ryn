@@ -9,38 +9,13 @@ const char* const tokenType[TOKEN_TYPE_COUNT] =
 
 
 
-TokenList tokenListCreate (size_t size)
-{
-    TokenList new =
-    {
-        .size = size,
-        .count = 0,
-        .list = malloc (size*sizeof (*new.list)),
-    };
-    return new;
-}
-
-void tokenListAppend (TokenList* tokenList, Token token)
-{
-    size_t pos = tokenList->count++;
-    if (tokenList->size <= tokenList->count)
-    {
-        size_t oldSize = tokenList->size;
-        size_t newSize = tokenList->size *= 2;
-        tokenList->list = realloc (tokenList->list, newSize);
-        while (oldSize < newSize)
-        {
-            tokenList->list[oldSize++] = (Token){};
-        }
-    }
-    tokenList->list[pos] = token;
-}
+LISTIFY_C(Token)
 
 void tokenListPrint (const TokenList* tokenList)
 {
     for (size_t t = 0; t < tokenList->count; ++t)
     {
-        Token* token = &tokenList->list[t];
+        Token* token = &tokenList->data[t];
         printf ("0x%04llX[%03llu,%02llu] - %s `%.*s` ID=%u\n",
                 t, token->line, token->col,
                 tokenType[token->tokenType],

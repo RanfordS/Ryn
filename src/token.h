@@ -1,5 +1,6 @@
 #pragma once
 #include "core.h"
+#include "listify.h"
 
 #define TOKEN_TYPE_X_LIST \
     X(UNKNOWN)\
@@ -89,14 +90,6 @@ typedef struct s_Token
 }
 Token;
 
-typedef struct
-{
-    size_t size;
-    size_t count;
-    Token* list; 
-}
-TokenList;
+LISTIFY_H(Token)
 
-extern TokenList tokenListCreate (size_t size);
-extern void tokenListAppend (TokenList* tokenList, Token token);
 extern void tokenListPrint (const TokenList* tokenList);
