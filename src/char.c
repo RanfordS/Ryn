@@ -5,7 +5,7 @@ CharClass charClassifier (char c)
     switch (c)
     {
         case '_':
-            return CHAR_FLAG_LETTER | CHAR_FLAG_UNDERSCORE;
+            return CHAR_FLAG_UNDERSCORE;
 
         case '"':
         case '\'':

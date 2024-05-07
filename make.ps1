@@ -6,7 +6,6 @@ Write-Host "Running build"
 $basepath = (Get-Location).Path
 $baselen = ($basepath | Measure-Object -Character).Characters
 Write-Host "Base path is $basepath"
-Write-Host "Base len is $baselen"
 
 $objs = New-Object Collections.Generic.List[String]
 

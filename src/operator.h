@@ -92,5 +92,5 @@ typedef uint8_t Operator;
 
 extern const char* const operators[OPERATOR_COUNT];
 extern const uint8_t operatorFlags[OPERATOR_COUNT];
-extern bool operatorFind (Operator searchStart, uint8_t opLen, char* opStr, Operator* result);
+extern bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result);
 

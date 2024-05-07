@@ -16,7 +16,8 @@ const uint8_t operatorFlags[OPERATOR_COUNT] =
 };
 
 
-bool operatorFind (Operator searchStart, uint8_t opLen, char* opStr, Operator* result)
+
+bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result)
 {
     for (Operator i = searchStart; i < OPERATOR_COUNT; ++i)
     {

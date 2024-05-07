@@ -6,6 +6,7 @@
 #include "stringlib.h"
 #include "token.h"
 #include "keyword.h"
+#include "lexer.h"
 
 /*
 __ _0 _1 _2 _3 _4 _5 _6 _7 _8 _9 _A _B _C _D _E _F
@@ -62,14 +63,13 @@ int main (int argc, char** argv)
     char* data = readFile (argv[1], &dataLength);
     if (!data) { return -1; }
 
-    Tokenizer tokenizer = tokenizerCreate (argv[1], dataLength, data);
-
-    TokenList tokenList = tokenListCreate (256);
-
-    tokenize (&tokenizer, &tokenList);
+    TokenList tokenList = createTokenList (256);
+    tokenize (dataLength, data, &tokenList);
+    bracketer (&tokenList);
+    lexer (&tokenList);
 
     printf ("\nList of Tokens\n");
-    tokenListPrint (&tokenList);
+    tokenListPrint (data, &tokenList);
 
     free (data);
 

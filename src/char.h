@@ -12,6 +12,12 @@ enum
     CHAR_FLAG_NUMBER      = 1 << 5,
     CHAR_FLAG_QUOTE       = 1 << 6,
     CHAR_FLAG_OPERATOR    = 1 << 7,
+
+    CHAR_MASK_NOUN
+        = CHAR_FLAG_LETTER
+        | CHAR_FLAG_UPPER
+        | CHAR_FLAG_NUMBER
+        | CHAR_FLAG_UNDERSCORE,
 };
 typedef uint8_t CharClass;
 

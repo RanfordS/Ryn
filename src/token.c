@@ -11,18 +11,18 @@ const char* const tokenType[TOKEN_TYPE_COUNT] =
 
 LISTIFY_C(Token)
 
-void tokenListPrint (const TokenList* tokenList)
+void tokenListPrint (const char* source, const TokenList* tokenList)
 {
     for (size_t t = 0; t < tokenList->count; ++t)
     {
         Token* token = &tokenList->data[t];
         printf ("0x%04llX[%03llu,%02llu] - %s `%.*s` ID=%u\n",
-                t, token->line, token->col,
+                t, token->line, token->column,
                 tokenType[token->tokenType],
-                token->len, token->str,
-                token->id);
+                token->length, source + token->index,
+                token->ident);
         printf ("- index: l=0x%04llX, r=0x%04llX\n",
                 token->leftIndex, token->rightIndex);
-        printf ("- flags 0x%02X\n", token->tokenFlags);
+        //printf ("- flags 0x%02X\n", token->tokenFlags);
     }
 }
