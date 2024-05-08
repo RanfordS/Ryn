@@ -20,7 +20,7 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
 {
     Token token =
     {
-        .tokenType = TOKEN_TYPE_START_OF_FILE,
+        .type = TOKEN_TYPE_START_OF_FILE,
     };
     appendTokenList (list, token);
 
@@ -40,13 +40,13 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
         if (c == '\n') ++line, column = 1;
         else ++column;
 
-        if (token.tokenType != TOKEN_TYPE_COMMENT
-        &&  token.tokenType != TOKEN_TYPE_LITERAL_STRING
+        if (token.type != TOKEN_TYPE_COMMENT
+        &&  token.type != TOKEN_TYPE_LITERAL_STRING
         &&  class & CHAR_CLASS_INVALID)
         {
             Token error =
             {
-                .tokenType = TOKEN_TYPE_INVALID,
+                .type = TOKEN_TYPE_INVALID,
                 .index = i,
                 .line = line,
                 .column = column,
@@ -56,30 +56,30 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
 
         rerun:
         uint8_t state;
-        switch (token.tokenType)
+        switch (token.type)
         {
             case TOKEN_TYPE_NONE:
                 if (class & CHAR_FLAG_NUMBER)
-                {   token.tokenType = TOKEN_TYPE_LITERAL_NUMBER; }
+                {   token.type = TOKEN_TYPE_LITERAL_NUMBER; }
                 else
                 if (class & CHAR_MASK_NOUN)
-                {   token.tokenType = TOKEN_TYPE_NOUN; }
+                {   token.type = TOKEN_TYPE_NOUN; }
                 else
                 if (c == '"')
-                {   token.tokenType = TOKEN_TYPE_LITERAL_STRING; }
+                {   token.type = TOKEN_TYPE_LITERAL_STRING; }
                 else
                 if (c == '\'')
-                {   token.tokenType = TOKEN_TYPE_LITERAL_CHAR; }
+                {   token.type = TOKEN_TYPE_LITERAL_CHAR; }
                 else
                 if (class & CHAR_FLAG_OPERATOR)
                 {   
-                    token.tokenType = TOKEN_TYPE_OPERATOR; 
+                    token.type = TOKEN_TYPE_OPERATOR; 
                     Operator operator;
                     operatorFind (0, 1, source + i, &operator);
                     token.ident = operator;
                 }
 
-                if (token.tokenType != TOKEN_TYPE_NONE)
+                if (token.type != TOKEN_TYPE_NONE)
                 {
                     token.index  = i;
                     token.string = source + i;
@@ -150,7 +150,7 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
                     {
                         commentDepth = 1;
                         operator = 0;
-                        token.tokenType = TOKEN_TYPE_COMMENT;
+                        token.type = TOKEN_TYPE_COMMENT;
                     }
                     token.ident = operator;
                     state = TOKENIZER_STATE_TOKEN_CONTINUE;
@@ -200,7 +200,7 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
         }
     }
 
-    switch (token.tokenType)
+    switch (token.type)
     {
         case TOKEN_TYPE_LITERAL_STRING:
         case TOKEN_TYPE_LITERAL_CHAR:
@@ -214,7 +214,7 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
         .index = length,
         .line = line,
         .column = column,
-        .tokenType = TOKEN_TYPE_END_OF_FILE,
+        .type = TOKEN_TYPE_END_OF_FILE,
     };
     appendTokenList (list, token);
 

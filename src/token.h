@@ -94,7 +94,7 @@ extern const char* const tokenType[TOKEN_TYPE_COUNT];
 typedef struct s_Token
 {
     //! This is a pointer into the file memory.
-    char* string;
+    const char* string;
     //! This is the index into the file data the token was found at.
     size_t index;
     size_t line;
@@ -104,7 +104,7 @@ typedef struct s_Token
     //! Byte length of the token.
     uint8_t length;
     //! Between this and the `id`, all unique tokens can be matched.
-    TokenType tokenType;
+    TokenType type;
     //! For operators, index of the left-hand argument
     size_t leftIndex;
     //! For operators, index of the right-hand argument

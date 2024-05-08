@@ -18,7 +18,7 @@ void tokenListPrint (const char* source, const TokenList* tokenList)
         Token* token = &tokenList->data[t];
         printf ("0x%04llX[%03llu,%02llu] - %s `%.*s` ID=%u\n",
                 t, token->line, token->column,
-                tokenType[token->tokenType],
+                tokenType[token->type],
                 token->length, source + token->index,
                 token->ident);
         printf ("- index: l=0x%04llX, r=0x%04llX\n",

@@ -23,7 +23,7 @@ size_t bracketer (TokenList* list)
     {
         printf ("Considering token %llu\n", i);
         Token* token = list->data + i;
-        if (token->tokenType != TOKEN_TYPE_OPERATOR) { continue; }
+        if (token->type != TOKEN_TYPE_OPERATOR) { continue; }
         printf ("It's an operator, investigate\n");
 
         bool shouldClose = false;
@@ -284,7 +284,7 @@ uint8_t lexLiteralNumber (Token* token)
     pos += specifierLength;
 
     if (pos != length)
-    {   token->tokenType = TOKEN_TYPE_INVALID; }
+    {   token->type = TOKEN_TYPE_INVALID; }
 
     printf ("Parsed number `%.*s`[%u] got %u:%u:%u:%u\n", length, string, length,
             headLength, tailLength, exponentLength, specifierLength);
@@ -298,7 +298,7 @@ uint8_t lexNoun (Token* token)
     CharClass class = charClassifier (token->string[0]);
     if (class == CHAR_FLAG_UPPER)
     {
-        token->tokenType = length == 1
+        token->type = length == 1
             ? TOKEN_TYPE_GENERIC_TYPE
             : TOKEN_TYPE_TYPE;
         return length;
@@ -309,13 +309,13 @@ uint8_t lexNoun (Token* token)
         bool match = nstringMatchCstring (length, token->string, keywords[i]);
         if (match)
         {
-            token->tokenType = TOKEN_TYPE_KEYWORD;
+            token->type = TOKEN_TYPE_KEYWORD;
             token->ident = i;
             return length;
         }
     }
 
-    token->tokenType = TOKEN_TYPE_NOUN;
+    token->type = TOKEN_TYPE_NOUN;
     return length;
 }
 
@@ -324,7 +324,7 @@ void lexer (TokenList* list)
     for (size_t i = 0; i < list->count; ++i)
     {
         Token* token = list->data + i;
-        switch (token->tokenType)
+        switch (token->type)
         {
             case TOKEN_TYPE_NOUN:
                 lexNoun (token);
