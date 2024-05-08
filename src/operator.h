@@ -63,7 +63,7 @@ typedef uint8_t OperatorFlags;
     X(">>",SHIFT_RIGHT,INFIX)\
     X(">>=",SHIFT_RIGHT_ASSIGN,INFIX)\
     X(">>>",SHUNT_RIGHT,SUFFIX)\
-    X("?",NULLABLE,SUFFIX)\
+    X("?",NULLABLE,PREFIX)\
     X("@",DEREF,SUFFIX)\
     X("[",ARRAY_INDEX_OPEN,BRACKET_OPEN)\
     X("\\(",MACRO_OPEN,BRACKET_OPEN)\
