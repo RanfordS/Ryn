@@ -1,0 +1,48 @@
+
+TokenType :: Enum U8
+{
+    none
+    start_of_file end_of_file
+    noun type generic_type keyword
+    operator
+    literal_number
+    literal_char
+    literal_string
+    comment
+    invalid
+    count
+}
+
+Token :: Struct
+{
+    index line column left_index right_index var_type U64
+    ident U32
+    length U8
+    token_type TokenType
+}
+
+token_list_print :: Func
+    source &[source_length U64]Char
+    list [count U64]Token
+{
+    for t := 0 -> count
+    {
+        count = 0;
+        token := list[t]&;
+
+        buffer := String "0x????[???,??] - " #size=512;
+        buffer[2:+4] = format_hex t 4 #upper=true #pad_zero=true;
+        buffer[7:+3] = format_int token.line 3 #pad_zero=true;
+        buffer[11:+2] = format_int token.column 2 #pad_zero=true;
+        buffer <>< string_of token.token_type;
+        buffer <>< '`;
+        buffer <>< source[token.index:+token.length];
+        buffer <>< "`\n";
+
+        buffer = "- index: l=0x????, r=0x????\n"
+        buffer[13:+4] = format_hex token.left_index 4 #upper=true;
+        buffer[18:+4] = format_hex token.right_index 4 #upper=true;
+    }
+}
+
+providing Token TokenType token_list;

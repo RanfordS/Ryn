@@ -1,0 +1,165 @@
+using "Token.ryn"
+providing tokenize
+
+TokenizerState :: Enum U8
+{
+    token_continue
+    end_token_now
+    end_token_after
+}
+
+
+
+tokenize :: Func source [source_length U64]Char
+-> error TokenizerError tokens [token_size #token_count U64]Token
+{
+    token := Token #token_type = start_of_file;
+    tokens <>< token;
+
+    token = 0;
+
+    line := token.line;
+    column := token.column;
+
+    escape := false;
+    commentDepth := 0u8;
+
+    for i := 0 -> source_length
+    {
+        c := source[i];
+        class := char_classifer c;
+
+        if c == '\n { ++line; column = 1 }
+        else { ++column }
+
+        if token.token_type != comment
+        && token.token_type != literal_string
+        && class & CharFlag.invalid
+        {
+            tokens <>< Token
+                #token_type = invalid
+                #index = i
+                #line = line
+                #column = column;
+        }
+
+        label rerun;
+        state := TokenizerState _;
+        match token.token_type
+        {
+            case none ->
+            if     class & CharFlag.number
+            {   token.token_type = literal_number }
+            elseif class & CharFlag.mask_noun
+            {   token.token_type = noun }
+            elseif c == '"
+            {   token.token_type = literal_string }
+            elseif c == ''
+            {   token.token_type = literal_char }
+            elseif class & CharFlag.operator
+            {
+                token.token_type = operator;
+                found, operator := operator_find 0 source[i:+1];
+                token.ident = operator;
+            }
+            
+            if token.token_type != none
+            {
+                token.index = i;
+                token.line = line;
+                token.column = column;
+            }
+            state = token_continue;
+
+            case literal_number ->
+            if c == '.
+            {   state = token_continue }
+            if (c == '- || c == '+) && source[i-1] == e
+            {   state = token_continue }
+            else
+            {
+                if class & CharFlag.mask_noun
+                {   state = token_continue }
+                else
+                {   state = end_token_now }
+            }
+
+            case noun ->
+            if class & CharFlag.mask_noun
+            {   state = token_continue }
+            else
+            {   state = end_token_now }
+
+            case literal_string ->
+            state = token_continue;
+            if escape
+            {   escape = false }
+            elseif c == '\\
+            {   escape = true }
+            elseif c == '"
+            {   state = end_token_after }
+
+            case literal_char ->
+            state = token_continue;
+            if escape
+            {
+                escape = false;
+                state = end_token_after;
+            }
+            elseif c == ''
+            {   escape = true }
+            else
+            {   state = end_token_after }
+
+            case operator ->
+            preview := i - token.index + 1;
+            string := source[token.index:+preview];
+            found, operator := operator_find token.ident string;
+
+            if found
+            {
+                if operator == comment_open
+                {
+                    comment_depth = 1;
+                    operator = 0;
+                    token.token_type = comment;
+                }
+                token.ident = operator;
+                state = token_continue;
+            }
+            else
+            {   state = end_token_now }
+
+            case comment ->
+            state = token_continue;
+            match c
+            {
+                case '* ->
+                if source[i-1] == '(
+                {   ++comment_depth }
+
+                case ') ->
+                    if source[i-1] == '*
+                    && source[i-2] != '( (*)*)
+                    {
+                        if (0 == --comment_depth)
+                        {   state = end_token_after }
+                    }
+            }
+        }
+
+        match state
+        {
+            case end_token_now ->
+            token.length = i - token.index;
+            list <>< token;
+            token = {};
+            goto rerun;
+
+            case end_token_after ->
+            token.length = i - token.index + 1;
+            list <>< token;
+            token = {};
+        }
+    }
+}

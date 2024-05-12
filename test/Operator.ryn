@@ -1,0 +1,84 @@
+providing Operator operator_find;
+
+Operator :: Enum U8 -> string String flags OperatorFlags
+{
+    logical_not -> "!" suffix
+    not_eq -> "!=" suffix
+    arg_spec -> "#" prefix
+    feed -> "#>" infix
+    mod -> "%" (prefix|infix)
+    mod_assign -> "%=" infix
+    ref_slash_bit_and -> "&" (prefix|infix)
+    logical_and -> "&&" infix
+    logical_and_assign -> "&&=" infix
+    bit_and_assign -> "&=" infix
+    paren_open -> "(" bracket_open
+    comment_open -> "(*" bracket_open
+    paren_close -> ")" bracket_close
+    mul -> "*" infix
+    mul_assign -> "*=" infix
+    add -> "+" (infix|prefix)
+    increment -> "++" (prefix|suffix)
+    add_assign -> "+=" infix
+    sep -> "," infix
+    sub -> "-" (prefix|infix)
+    decrement -> "--" (prefix|infix)
+    sub_assign -> "-=" infix
+    range -> "->" infix
+    method_range -> "->." infix
+    access -> "." infix
+    div -> "/" infix
+    div_assign -> "/=" infix
+    splice -> ":" infix
+    compile_define -> "::" infix
+    run_define -> ":=" infix
+    end_statement -> ";" suffix
+    less_than -> "<" infix
+    shift_left -> "<<" infix
+    shunt_left -> "<<<" suffix
+    shift_left_assign -> "<<=" infix
+    pop_left -> "<<>" suffix
+    greater_than_or_eq -> "<=" infix
+    bit_reverse -> "<>" suffix
+    push_right -> "<><" infix
+    pop_right -> "<>>" suffix
+    assign -> "=" infix
+    is_eq -> "==" infix
+    deref_assign -> "=@" infix
+    greater_than -> ">" infix
+    swap -> "><" infix
+    push_left -> "><>" infix
+    less_than_or_eq -> ">=" infix
+    shift_right -> ">>" infix
+    shift_right_assign -> ">>=" infix
+    shunt_right -> ">>>" suffix
+    nullable -> "?" suffix
+    deref -> "@" suffix
+    array_index_open -> "[" bracket_open
+    macro_open -> "\\(" bracket_open
+    index_close -> "]" bracket_close
+    bit_xor -> "^" infix
+    bit_xor_assign -> "^=" infix
+    logical_xor -> "^^" infix
+    logical_xor_assign -> "^^=" infix
+    block_open -> "{" bracket_open
+    bit_or -> "|" infix
+    bit_or_assign -> "|=" infix
+    bit_index_open -> "|[" bracket_open
+    logical_or -> "||" infix
+    logical_or_assign -> "||=" infix
+    block_close -> "}" bracket_close
+    bit_not -> "~" suffix
+    count -> "" 0
+}
+
+operator_find :: Func search_start Operator op [length U8]Char
+-> found Bool result Operator
+{
+    for i := search_start -> Operator.count
+    {
+        if op == i.string
+        {   return true i }
+    }
+    return false 0;
+}
