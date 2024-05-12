@@ -1,0 +1,55 @@
+providing SumTree set recalculate find;
+
+SumTree :: Struct A
+{
+    depth U64
+    data [(2 << depth) - 1]A
+}
+
+
+set :: Func %tree &SumTree A index U64 value A
+{
+    using tree;
+    index += (1 << depth) - 1;
+    data[index] = value;
+
+    for layer := 0 -> depth
+    {
+        index = (index - 1)/2;
+        left := 2*index + 1;
+        data[index] = data[left] + data[left + 1];
+    }
+}
+
+recalculate :: Func %tree &SumTree A
+{
+    using tree;
+    index = (1 << depth) - 1;
+    while index--
+    {
+        left := 2*index + 1;
+        data[index] = data[left] + data[left + 1];
+    }
+}
+
+find :: Func tree &SumTree A query A -> U64
+{
+    using tree;
+    index = 0u64;
+
+    if data[0] <= query
+    {   return -1u64 }
+
+    for layer = 0 -> depth
+    {
+        index = 2*index + 1;
+        left_val := data[index];
+        if left_val <= query
+        {
+            query -= left_val;
+            ++index;
+        }
+    }
+
+    return index - (1 << depth) + 1;
+}

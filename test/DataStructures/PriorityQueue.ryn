@@ -1,0 +1,94 @@
+providing PriorityQueue;
+
+PriorityQueue :: Struct
+{
+    start U64
+    data [capacity used U64]U32
+}
+
+unroll :: Func queue &PriorityQueue -> output [length = queue.capacity]U32
+{
+    using queue;
+    source_index := start;
+    output_index := 0*start;
+
+    while source_index < capacity && output_index < used
+    {
+        output[output_index++] = data[source_index++]
+    }
+    source_index = 0;
+    while output_index < used
+    {
+        output[output_index++] = data[source_index++]
+    }
+    return output;
+}
+
+insert :: Func %queue &PriorityQueue element U32
+{
+    using queue;
+    head_index := start;
+    tail_index := head_index + used - 1;
+    head_value := data[head_index];
+    tail_value := data[tail_index % capacity];
+
+    if element <= head_value
+    {
+        if head_index == 0
+        {
+            start = capacity - 1;
+        }
+        else
+        {
+            --start;
+        }
+        data[start] = element;
+        ++used;
+        return;
+    }
+
+    if tail_value <= element
+    {
+        data[(tail_index + 1) % capacity] = element;
+        ++used;
+        return;
+    }
+
+    while tail_index - head_index > 1
+    {
+        mid_index := (tail_index + head_index)/2;
+        mid_value := data[mid_index % capacity];
+        if mid_value < element
+        {
+            head_index = mid_index;
+            head_value = mid_value;
+        }
+        elseif mid_value > element
+        {
+            tail_index = mid_index;
+            tail_value = mid_value;
+        }
+        else
+        {
+            head_index = mid_index;
+            break;
+        }
+    }
+    ++head_index;
+
+    tail_index = start + used;
+    for i := head_index -< tail_index
+    {
+        data[(i + 1) % capacity] = data[i % capacity];
+    }
+    data[head_index % capacity] = element;
+    ++used;
+}
+
+pop :: Func %queue &PriorityQueue -> U32
+{
+    result := data[start];
+    --used;
+    start = (start + 1) % capacity;
+    return result;
+}

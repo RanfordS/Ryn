@@ -1,0 +1,60 @@
+using "Graph";
+providing prims;
+
+prims :: Func source &Graph -> Graph
+{
+    result := Graph
+        #vertex_weights = source.vertex_weights
+        #edge_count = source.edge_count;
+
+    done_til := 0u64;
+    consider_til := 0u64;
+    edges = source.edges;
+
+    vertex_added := [source.vertex_count]U64 {1};
+
+    get_added :: Func i U64
+    {   return vertex_added[i/64]|[i%64] }
+
+    set_added :: Func i U64
+    {   vertex_added[i/64]|[i%64] = true }
+
+    for i := 0 -> source.edge_count
+    {
+        if edges[i].to == 0 || edges[i].from == 0
+        {   edges[i] >< edges[consider_til++] }
+    }
+
+    for i := 1 -> source.vertex_count
+    {
+        min_index := done_til;
+        min_weight := edges[done_til].weight;
+        for j := done_til + 1 -> consider_til
+        {
+            new_weight := edges[i].weight;
+            if new_weight < min_weight
+            {
+                min_index = j;
+                min_weight = new_weight;
+            }
+        }
+
+        new_edge := edges[min_index]&;
+        result.edges[i - 1] = new_edge@;
+        new_vertex := get_added new_edge.to #>
+            ifx #0 new_edge.to new_edge.from;
+        set_added new_vertex;
+
+        for i := done_til -> consider_til
+        {
+            if edges[i].to == new_vertex || edges[i].from == new_vertex
+            {   edges[i] >< edges[done_til++] }
+        }
+        for i := consider_til -> source.edge_count
+        {
+            if edges[i].to == new_vertex || edges[i].from == new_vertex
+            {   edges[i] >< edges[consider_til++] }
+        }
+    }
+    return result;
+}
