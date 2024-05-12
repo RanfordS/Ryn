@@ -11,15 +11,25 @@ enum
 };
 typedef uint8_t OperatorFlags;
 
+enum
+{
+    OPERATOR_CONTEXT_ALWAYS,
+    OPERATOR_CONTEXT_
+};
+typedef uint8_t OperatorContext;
+
 //TODO: Add precedence.
 #define OPERATOR_X_LIST \
     X("!",LOGICAL_NOT,SUFFIX)\
     X("!=",NOT_EQ,SUFFIX)\
     X("#",ARG_SPEC,PREFIX)\
     X("#>",FEED,INFIX)\
-    X("%",MOD,PREFIX|INFIX)\
+    X("%",MODULUS,INFIX)\
+    X("%",MUTABLE,PREFIX)\
     X("%=",MOD_ASSIGN,INFIX)\
-    X("&",REF_SLASH_BIT_AND,PREFIX|INFIX)\
+    X("&",REFERENCE,PREFIX)\
+    X("&",TAKE_REFERENCE,SUFFIX)\
+    X("&",BIT_AND,INFIX)\
     X("&&",LOGICAL_AND,INFIX)\
     X("&&=",LOGICAL_AND_ASSIGN,INFIX)\
     X("&=",BIT_AND_ASSIGN,INFIX)\
@@ -28,12 +38,16 @@ typedef uint8_t OperatorFlags;
     X(")",PAREN_CLOSE,BRACKET_CLOSE)\
     X("*",MUL,INFIX)\
     X("*=",MUL_ASSIGN,INFIX)\
-    X("+",ADD,INFIX|PREFIX)\
-    X("++",INCREMENT,PREFIX|SUFFIX)\
+    X("+",ADD,INFIX)\
+    X("+",UNARY_PLUS,PREFIX)\
+    X("++",PRE_INCREMENT,PREFIX)\
+    X("++",POST_INCREMENT,SUFFIX)\
     X("+=",ADD_ASSIGN,INFIX)\
     X(",",SEP,INFIX)\
-    X("-",SUB,PREFIX|INFIX)\
-    X("--",DECREMENT,PREFIX|INFIX)\
+    X("-",SUB,INFIX)\
+    X("-",UNARY_MINUS,PREFIX)\
+    X("--",PRE_DECREMENT,PREFIX)\
+    X("--",POST_DECREMENT,SUFFIX)\
     X("-=",SUB_ASSIGN,INFIX)\
     X("->",RANGE,INFIX)\
     X("->.",METHOD_RANGE,INFIX)\
