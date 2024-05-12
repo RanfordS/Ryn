@@ -1,0 +1,12 @@
+providing GraphEdge Graph;
+
+GraphEdge :: Struct
+{
+    from to weight U64
+}
+
+Graph :: Struct
+{
+    vertex_weights [vertex_count U64]U64
+    edges [edge_count U64]Edge
+}
