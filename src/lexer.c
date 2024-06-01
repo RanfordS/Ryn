@@ -267,8 +267,8 @@ uint8_t lexNumberSpecifier (const char* string, uint8_t length)
 
 uint8_t lexLiteralNumber (Token* token)
 {
-    char*   string = token->string;
-    uint8_t length = token->length;
+    const char* string = token->string;
+    uint8_t     length = token->length;
 
     uint8_t pos = 0;
     uint8_t headLength = lexNumberHead (string, length);
