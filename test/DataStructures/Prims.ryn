@@ -1,7 +1,7 @@
 using "Graph";
 providing prims;
 
-prims :: Func source &Graph -> Graph
+prims :: Func source $Graph -> Graph
 {
     result := Graph
         #vertex_weights = source.vertex_weights
@@ -39,7 +39,7 @@ prims :: Func source &Graph -> Graph
             }
         }
 
-        new_edge := edges[min_index]&;
+        new_edge := edges[min_index]$;
         result.edges[i - 1] = new_edge@;
         new_vertex := get_added new_edge.to #>
             ifx #0 new_edge.to new_edge.from;

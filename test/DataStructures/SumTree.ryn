@@ -7,7 +7,7 @@ SumTree :: Struct A
 }
 
 
-set :: Func %tree &SumTree A index U64 value A
+set :: Func %tree $SumTree A index U64 value A
 {
     using tree;
     index += (1 << depth) - 1;
@@ -21,7 +21,7 @@ set :: Func %tree &SumTree A index U64 value A
     }
 }
 
-recalculate :: Func %tree &SumTree A
+recalculate :: Func %tree $SumTree A
 {
     using tree;
     index = (1 << depth) - 1;
@@ -32,7 +32,7 @@ recalculate :: Func %tree &SumTree A
     }
 }
 
-find :: Func tree &SumTree A query A -> U64
+find :: Func tree $SumTree A query A -> U64
 {
     using tree;
     index = 0u64;

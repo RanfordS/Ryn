@@ -6,13 +6,13 @@ PriorityQueue :: Struct
     data [capacity used U64]U32
 }
 
-unroll :: Func queue &PriorityQueue -> output [length = queue.capacity]U32
+unroll :: Func queue $PriorityQueue -> output [length = queue.capacity]U32
 {
     using queue;
     source_index := start;
     output_index := 0*start;
 
-    while source_index < capacity && output_index < used
+    while source_index < capacity $$ output_index < used
     {
         output[output_index++] = data[source_index++]
     }
@@ -24,7 +24,7 @@ unroll :: Func queue &PriorityQueue -> output [length = queue.capacity]U32
     return output;
 }
 
-insert :: Func %queue &PriorityQueue element U32
+insert :: Func %queue $PriorityQueue element U32
 {
     using queue;
     head_index := start;
@@ -85,7 +85,7 @@ insert :: Func %queue &PriorityQueue element U32
     ++used;
 }
 
-pop :: Func %queue &PriorityQueue -> U32
+pop :: Func %queue $PriorityQueue -> U32
 {
     result := data[start];
     --used;

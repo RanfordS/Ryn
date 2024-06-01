@@ -1,5 +1,5 @@
-using "Token.ryn"
-providing tokenize
+using "Token.ryn";
+providing tokenize;
 
 TokenizerState :: Enum U8
 {

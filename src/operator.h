@@ -24,11 +24,11 @@ typedef uint8_t OperatorContext;
     X("!=",NOT_EQ,SUFFIX)\
     X("#",ARG_SPEC,PREFIX)\
     X("#>",FEED,INFIX)\
+    X("$",REFERENCE,PREFIX)\
+    X("$",TAKE_REFERENCE,SUFFIX)\
     X("%",MODULUS,INFIX)\
     X("%",MUTABLE,PREFIX)\
     X("%=",MOD_ASSIGN,INFIX)\
-    X("&",REFERENCE,PREFIX)\
-    X("&",TAKE_REFERENCE,SUFFIX)\
     X("&",BIT_AND,INFIX)\
     X("&&",LOGICAL_AND,INFIX)\
     X("&&=",LOGICAL_AND_ASSIGN,INFIX)\
@@ -40,14 +40,14 @@ typedef uint8_t OperatorContext;
     X("*=",MUL_ASSIGN,INFIX)\
     X("+",ADD,INFIX)\
     X("+",UNARY_PLUS,PREFIX)\
-    X("++",PRE_INCREMENT,PREFIX)\
     X("++",POST_INCREMENT,SUFFIX)\
+    X("++",PRE_INCREMENT,PREFIX)\
     X("+=",ADD_ASSIGN,INFIX)\
     X(",",SEP,INFIX)\
     X("-",SUB,INFIX)\
     X("-",UNARY_MINUS,PREFIX)\
-    X("--",PRE_DECREMENT,PREFIX)\
     X("--",POST_DECREMENT,SUFFIX)\
+    X("--",PRE_DECREMENT,PREFIX)\
     X("-=",SUB_ASSIGN,INFIX)\
     X("->",RANGE,INFIX)\
     X("->.",METHOD_RANGE,INFIX)\

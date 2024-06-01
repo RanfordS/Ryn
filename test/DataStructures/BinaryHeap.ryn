@@ -28,7 +28,7 @@ layer_of_index :: Func index U64 -> U64
     return layer;
 }
 
-bubble_up :: Func %heap &BinaryHeap A index U64 value A
+bubble_up :: Func %heap $BinaryHeap A index U64 value A
 {
     using heap;
     while true
@@ -48,7 +48,7 @@ bubble_up :: Func %heap &BinaryHeap A index U64 value A
     data[index] = value;
 }
 
-bubble_down :: Func %heap &BinaryHeap A index U64 value A
+bubble_down :: Func %heap $BinaryHeap A index U64 value A
 {
     while true
     {
@@ -75,13 +75,13 @@ bubble_down :: Func %heap &BinaryHeap A index U64 value A
     data[index] = value;
 }
 
-insert :: Func %heap &BinaryHeap A value A
+insert :: Func %heap $BinaryHeap A value A
 {
     index = heap.used++;
     bubble_up heap index value;
 }
 
-pop :: Func %heap &BinaryHeap A -> A
+pop :: Func %heap $BinaryHeap A -> A
 {
     using heap;
     result := data[0];
