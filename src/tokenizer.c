@@ -139,7 +139,7 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
             case TOKEN_TYPE_OPERATOR:
             {
                 size_t preview = i - token.index + 1;
-                char* string = source + token.index;
+                const char* string = source + token.index;
                 Operator operator;
                 bool found = operatorFind
                     (token.ident, preview, string, &operator);
