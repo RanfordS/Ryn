@@ -40,14 +40,10 @@ typedef uint8_t OperatorContext;
     X("*=",MUL_ASSIGN,INFIX)\
     X("+",ADD,INFIX)\
     X("+",UNARY_PLUS,PREFIX)\
-    X("++",POST_INCREMENT,SUFFIX)\
-    X("++",PRE_INCREMENT,PREFIX)\
     X("+=",ADD_ASSIGN,INFIX)\
     X(",",SEP,INFIX)\
     X("-",SUB,INFIX)\
     X("-",UNARY_MINUS,PREFIX)\
-    X("--",POST_DECREMENT,SUFFIX)\
-    X("--",PRE_DECREMENT,PREFIX)\
     X("-=",SUB_ASSIGN,INFIX)\
     X("->",RANGE,INFIX)\
     X("->.",METHOD_RANGE,INFIX)\
