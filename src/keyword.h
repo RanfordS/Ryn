@@ -1,17 +1,20 @@
 #pragma once
 
 #define KEYWORD_X_LIST \
-    X(USING,using)\
-    X(PROVIDING,providing)\
-    X(IF,if)\
-    X(ELSEIF,elseif)\
-    X(ELSE,else)\
-    X(FOR,for)\
-    X(WHILE,while)\
-    X(MATCH,match)\
-    X(RETURN,return)\
-    X(CONTINUE,continue)\
     X(BREAK,break)\
+    X(CASE,case)\
+    X(CONTINUE,continue)\
+    X(ELSE,else)\
+    X(ELSEIF,elseif)\
+    X(FOR,for)\
+    X(GOTO,goto)\
+    X(IF,if)\
+    X(LABEL,label)\
+    X(MATCH,match)\
+    X(PROVIDING,providing)\
+    X(RETURN,return)\
+    X(USING,using)\
+    X(WHILE,while)\
 
 enum
 {
