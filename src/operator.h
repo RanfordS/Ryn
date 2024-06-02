@@ -76,6 +76,7 @@ typedef uint8_t OperatorContext;
     X("?",NULLABLE,PREFIX)\
     X("@",DEREF,SUFFIX)\
     X("[",ARRAY_INDEX_OPEN,BRACKET_OPEN)\
+    X("[",ARRAY_SPECIFIER_OPEN,BRACKET_OPEN)\
     X("\\(",MACRO_OPEN,BRACKET_OPEN)\
     X("]",INDEX_CLOSE,BRACKET_CLOSE)\
     X("^",BIT_XOR,INFIX)\

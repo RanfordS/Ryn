@@ -91,6 +91,35 @@ typedef uint8_t TokenType;
 
 extern const char* const tokenType[TOKEN_TYPE_COUNT];
 
+/*
+{push tabular; columns "l|lll"}
+| [b|Item]         | [b|Left Index]   | [b|Right Index]  | [b|Next Index]   |[nr]
+[hline]
+| Operator         | Left Operand     | Right Operand    | Next Argument    |[nr]
+| Prefix Operator  |                  | Operand          | Next Argument    |[nr]
+| [m|,] & [m|;]    | First Statement  | Second Statement | -                |[nr]
+| Identifier       | -                | -                | Next Argument    |[nr]
+| Literal          | -                | -                | Next Argument    |[nr]
+| Open Bracket     | Outer            | Inner            | -                |[nr]
+| Closed Bracket   | Open Bracket     | -                | Next Argument    |[nr]
+| [m|break]        | -                | -                | -                |[nr]
+| [m|case]         | Pattern          | -                | -                |[nr]
+| [m|continue]     | -                | -                | -                |[nr]
+| [m|else]         | Condition        | Body             | -                |[nr]
+| [m|elseif]       | Condition        | Body             | Next Statement   |[nr]
+| [m|for]          | Condition        | Body             | Loop             |[nr]
+| [m|goto]         | Identifier       | -                | -                |[nr]
+| [m|if]           | Condition        | Body             | Next Statement   |[nr]
+| [m|label]        | Identifier       | -                | -                |[nr]
+| [m|match]        | Pattern          | Body             | -                |[nr]
+| [m|providing]    | Entry            | -                | -                |[nr]
+| [m|return]       | Statement        | -                | -                |[nr]
+| [m|using]        | Entry            | -                | -                |[nr]
+| [m|while]        | Condition        | Body             | -                |[nr]
+| -                | -                | -                | -                |[nr]
+{pop}
+*/
+
 typedef struct s_Token
 {
     //! This is a pointer into the file memory.
@@ -105,10 +134,12 @@ typedef struct s_Token
     uint8_t length;
     //! Between this and the `id`, all unique tokens can be matched.
     TokenType type;
-    //! For operators, index of the left-hand argument
+    //! For operators, index of the left-hand argument.
     size_t leftIndex;
-    //! For operators, index of the right-hand argument
+    //! For operators, index of the right-hand argument.
     size_t rightIndex;
+    //! Index of the next item in a list.
+    size_t nextIndex;
     //! 
     size_t varType;
 }
