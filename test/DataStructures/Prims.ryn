@@ -9,7 +9,7 @@ prims :: Func source $Graph -> Graph
 
     done_til := 0u64;
     consider_til := 0u64;
-    edges = source.edges;
+    edges := source.edges;
 
     vertex_added := [source.vertex_count]U64 {1};
 
