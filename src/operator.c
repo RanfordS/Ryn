@@ -3,14 +3,28 @@
 
 const char* const operators[OPERATOR_COUNT] =
 {
-#define X(str,name,pos) [OPERATOR_##name] = str,
+#define X(str,name,pos,context,prec) [OPERATOR_##name] = str,
     OPERATOR_X_LIST
 #undef X
 };
 
-const uint8_t operatorFlags[OPERATOR_COUNT] =
+const OperatorPosition operatorPositions[OPERATOR_COUNT] =
 {
-#define X(str,name,pos) [OPERATOR_##name] = pos,
+#define X(str,name,pos,context,prec) [OPERATOR_##name] = OPERATOR_POSITION_##pos,
+    OPERATOR_X_LIST
+#undef X
+};
+
+const OperatorContext operatorContexts[OPERATOR_COUNT] =
+{
+#define X(str,name,pos,context,prec) [OPERATOR_##name] = OPERATOR_CONTEXT_##context,
+    OPERATOR_X_LIST
+#undef X
+};
+
+const OperatorPrecedence operatorPrecedence[OPERATOR_COUNT] =
+{
+#define X(str,name,pos,context,prec) [OPERATOR_##name] = OPERATOR_PRECEDENCE_##prec,
     OPERATOR_X_LIST
 #undef X
 };

@@ -152,31 +152,33 @@ Func %tokens &[length U64]Token in_args in_definition Bool -> advance_length U64
 │   ╭─┐─╮
 │   ╰─┬─╯╵
 │   ╰┤│├╯
-│
-00  $! $& $++ $-- $.$ $<<< $>>> $[$] $|[$] $<> $@ $~
-01  ++$ +$ -$ --$ ?$
-02  #$
-<>  Parse Args
-04  $!=$ $==$
-06  $#>$
-08  $%$
-0A  $%=$ $&=$ $*=$ $+=$ $-=$ $/=$ $::$ $:=$ $=$ $=@$ $><$ $^=$ $^^=$ $>>=$ $<<=$
-0C  $&$
-0E  $*$ $/$
-10  $+$ $-$
-12  $,$
-14  $->$ $->.$
-16  $:$ $:+$
-18  $;$
-1A  $<$ $>$ $<=$ $>=$
-1C  $<<$ $>>$
-1E  $<><$ $<>>$ $<<>$ $><>$
-20  $&$
-22  $^$
-24  $|$
-26  $&&$
-28  $^^$
-2A  $||$
+
+SUFFIX   x! x$ x++ x-- x.x x<<< x>>> x[x] x|[x] x<> x@ x~
+PREFIX   +x -x ?x %x []T $T #x
+ARGUMENT Parse Args
+ARGFEED  x#>x
+
+MULMATH  x%x x*x x/x
+ADDMATH  x+x x-x
+SHIFT    x<<x x>>x
+
+RANGE    x->x x->.x
+COMPARE  x<x x>x x<=x x>=x x!=x x==x
+
+BITAND   x&x
+BITXOR   x^x
+BITOR    x|x
+
+LOGICAND x&&x
+LOGICXOR x^^x
+LOGICOR  x||x
+
+ARRAY    x<><x x<>>x x<<>x x><>x x..x
+
+SLICE    x:x x:+x
+COMMA    x,x
+ASSIGN   x%=x x&=x x*=x x+=x x-=x x/=x x::x x:=x x=x x=@x x><x x^=x x^^=x x>>=x x<<=x
+SEMI     x;x
 │
 │
 │
