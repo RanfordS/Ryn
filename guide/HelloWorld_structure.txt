@@ -1,0 +1,25 @@
+start_of_file
+○─  ;
+    ◁─  using
+        ○─ "print"
+    ─▷ ::
+        ◁─ main
+        ─▷ Func
+            ○─ argc
+            ○─ Int
+            ○─ argv
+            ○─ []
+                ◁─ argc
+                ─▷ CString
+            ○─ ->
+            ○─ Int
+            ─▷ {}
+                ─▷ ;
+                    ◁─ print
+                        ○─ "Hello World\n"
+                    ─▷ ;
+                        ◁─ return
+                            ○─ 0
+        ○─ ;
+            ◁─ providing
+                ○─ main
