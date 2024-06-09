@@ -51,7 +51,9 @@ enum
 };
 typedef uint8_t OperatorPrecedence;
 
-// This list must be kept in alphabetical order!
+// This list must be kept in order!
+// Sub-sequences must be immediately before their extensions
+// e.g., `&` preceeds `&=` and `&&`
 // Vim: 3jV}k:sort <- yiw@"<CR> 
 // String, Enum, Position, Context, Precedence
 #define OPERATOR_X_LIST \
@@ -141,7 +143,7 @@ enum
 typedef uint8_t Operator;
 
 extern const char* const operators[OPERATOR_COUNT];
-extern const uint8_t operatorFlags[OPERATOR_COUNT];
-extern const OperatorPrecedence operatorPrecedence[OPERATOR_COUNT];
+extern const uint8_t operatorPositions[OPERATOR_COUNT];
+extern const OperatorPrecedence operatorPrecedences[OPERATOR_COUNT];
 extern bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result);
 

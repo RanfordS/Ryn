@@ -1,5 +1,5 @@
 0 SUFFIX    x! x$ x++ x-- x.x x<<< x>>> x[x] x|[x] x<> x@ x~
-1 PREFIX    +x -x ?x %x []T $T #x
+1 PREFIX    +x -x %x ?T []T $T #x
 2 ARGUMENT  Parse Args
 3 ARGFEED   x#>x
            

@@ -22,7 +22,7 @@ const OperatorContext operatorContexts[OPERATOR_COUNT] =
 #undef X
 };
 
-const OperatorPrecedence operatorPrecedence[OPERATOR_COUNT] =
+const OperatorPrecedence operatorPrecedences[OPERATOR_COUNT] =
 {
 #define X(str,name,pos,context,prec) [OPERATOR_##name] = OPERATOR_PRECEDENCE_##prec,
     OPERATOR_X_LIST
