@@ -16,6 +16,8 @@ enum
     OPERATOR_CONTEXT_ALWAYS,
     OPERATOR_CONTEXT_TYPESPEC,
     OPERATOR_CONTEXT_EXPRESSION,
+    OPERATOR_CONTEXT_MATCH,
+    OPERATOR_CONTEXT_FOR,
 };
 typedef uint8_t OperatorContext;
 
@@ -49,6 +51,8 @@ enum
 };
 typedef uint8_t OperatorPrecedence;
 
+// This list must be kept in alphabetical order!
+// Vim: 3jV}k:sort <- yiw@"<CR> 
 // String, Enum, Position, Context, Precedence
 #define OPERATOR_X_LIST \
     X("!",LOGICAL_NOT,SUFFIX,EXPRESSION,SUFFIX)\
@@ -75,9 +79,12 @@ typedef uint8_t OperatorPrecedence;
     X(",",SEP,INFIX,EXPRESSION,COMMA)\
     X("-",SUB,INFIX,EXPRESSION,MATH_AS)\
     X("-",UNARY_MINUS,PREFIX,EXPRESSION,PREFIX)\
+    X("-<",REV_RANGE,INFIX,FOR,RANGE)\
     X("-=",SUB_ASSIGN,INFIX,EXPRESSION,ASSIGN)\
-    X("->",RANGE,INFIX,EXPRESSION,RANGE)\
-    X("->.",METHOD_RANGE,INFIX,EXPRESSION,RANGE)\
+    X("->",CASE_START,INFIX,MATCH,SEMICOLON)\
+    X("->",RANGE,INFIX,FOR,RANGE)\
+    X("->",RETURN_SPEC,INFIX,TYPESPEC,RANGE)\
+    X("->.",METHOD_RANGE,INFIX,FOR,RANGE)\
     X(".",ACCESS,INFIX,EXPRESSION,SUFFIX)\
     X("..",CONCAT,INFIX,EXPRESSION,ARRAY)\
     X("/",DIV,INFIX,EXPRESSION,MATH_DM)\
@@ -135,5 +142,6 @@ typedef uint8_t Operator;
 
 extern const char* const operators[OPERATOR_COUNT];
 extern const uint8_t operatorFlags[OPERATOR_COUNT];
+extern const OperatorPrecedence operatorPrecedence[OPERATOR_COUNT];
 extern bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result);
 

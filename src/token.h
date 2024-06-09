@@ -105,7 +105,7 @@ extern const char* const tokenType[TOKEN_TYPE_COUNT];
 | [m|break]        | -                | -                | -                |[nr]
 | [m|case]         | Pattern          | -                | -                |[nr]
 | [m|continue]     | -                | -                | -                |[nr]
-| [m|else]         | Condition        | Body             | -                |[nr]
+| [m|else]         | -                | Body             | -                |[nr]
 | [m|elseif]       | Condition        | Body             | Next Statement   |[nr]
 | [m|for]          | Condition        | Body             | Loop             |[nr]
 | [m|goto]         | Identifier       | -                | -                |[nr]
@@ -116,6 +116,10 @@ extern const char* const tokenType[TOKEN_TYPE_COUNT];
 | [m|return]       | Statement        | -                | -                |[nr]
 | [m|using]        | Entry            | -                | -                |[nr]
 | [m|while]        | Condition        | Body             | -                |[nr]
+| [m|Func]         | -                | Body             | Argument List    |[nr]
+| [m|Struct]       | -                | Body             | -                |[nr]
+| [m|Union]        | -                | Body             | -                |[nr]
+| [m|Enum]         | Type             | Body             | -                |[nr]
 | -                | -                | -                | -                |[nr]
 {pop}
 */
