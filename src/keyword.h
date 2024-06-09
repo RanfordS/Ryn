@@ -15,6 +15,10 @@
     X(RETURN,return)\
     X(USING,using)\
     X(WHILE,while)\
+    X(ENUM,Enum)\
+    X(FUNC,Func)\
+    X(STRUCT,Struct)\
+    X(UNION,Union)\
 
 enum
 {
