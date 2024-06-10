@@ -48,8 +48,8 @@ bool operatorMatchContext (Operator searchStart, OperatorContext context, Operat
 {
     for (Operator i = searchStart; i < OPERATOR_COUNT; ++i)
     {
-        if ((strcmp (operators[searchStart], operators[i]) == 0)
-        &&  (operatorContexts[i] == context))
+        if (strcmp (operators[searchStart], operators[i]) == 0
+        &&  operatorContexts[i] == context)
         {
             *result = i;
             return true;
