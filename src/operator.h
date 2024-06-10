@@ -146,4 +146,5 @@ extern const char* const operators[OPERATOR_COUNT];
 extern const OperatorPosition operatorPositions[OPERATOR_COUNT];
 extern const OperatorPrecedence operatorPrecedences[OPERATOR_COUNT];
 extern bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result);
+extern bool operatorMatchContext (Operator searchStart, OperatorContext context, Operator* result);
 
