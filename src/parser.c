@@ -1,5 +1,5 @@
 #include "parser.h"
-#include <token.h>
+#include "token.h"
 
 // We pass around `count` and `tokens` instead of a `TokenList` so we can take
 // sub-ranges with ease.
