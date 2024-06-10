@@ -17,6 +17,11 @@
 │     │    ○───────╯
 │     ○────╯
 │
+│   (* Where brackets are present, they are denoted as follows *)
+│   Outer Inner
+│     ╰───[ ╵ ]
+│             ╰─After
+│
 │   (* An equivalent Ryn declaration is as follows *)
 │   tree := Token
 │       #left_token=Left

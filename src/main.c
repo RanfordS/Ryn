@@ -64,7 +64,7 @@ int main (int argc, char** argv)
     if (!data) { return -1; }
 
     TokenList tokenList = createTokenList (256);
-    tokenize (dataLength, data, &tokenList);
+    tokenize (dataLength, data, &tokenList, 0);
     bracketer (&tokenList);
     lexer (&tokenList);
 
