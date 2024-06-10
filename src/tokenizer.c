@@ -4,9 +4,6 @@
 #include "stringlib.h"
 #include "operator.h"
 
-
-
-
 enum
 {
     TOKENIZER_STATE_TOKEN_CONTINUE,
@@ -14,9 +11,7 @@ enum
     TOKENIZER_STATE_END_TOKEN_AFTER,
 };
 
-
-
-TokenizerError tokenize (size_t length, const char* source, TokenList* list)
+RynError tokenize (size_t length, const char* source, TokenList* list, TokenizerFlags flags)
 {
     Token token =
     {
@@ -205,7 +200,9 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
         case TOKEN_TYPE_LITERAL_STRING:
         case TOKEN_TYPE_LITERAL_CHAR:
         case TOKEN_TYPE_COMMENT:
-            //TODO: handle error, incomplete token
+            token.error = ERROR_TOKENIZER_INCOMPLETE_TOKEN;
+            token.length = length - token.index;
+            appendTokenList (list, token);
             break;
     }
 
@@ -218,6 +215,6 @@ TokenizerError tokenize (size_t length, const char* source, TokenList* list)
     };
     appendTokenList (list, token);
 
-    return TOKENIZER_SUCCESS;
+    return SUCCESS;
 }
 

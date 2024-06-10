@@ -1,6 +1,7 @@
 #pragma once
 #include "core.h"
 #include "listify.h"
+#include "rynerror.h"
 
 /*
 #define TOKEN_TYPE_X_LIST \
@@ -52,6 +53,7 @@
 #define TOKEN_TYPE_X_LIST \
     X(NONE)\
     X(START_OF_FILE)\
+    X(ERRONEOUS_CLOSE)\
     X(END_OF_FILE)\
     X(NOUN)\
         X(TYPE)\
@@ -113,6 +115,7 @@ typedef struct s_Token
     size_t nextIndex;
     //! 
     size_t varType;
+    RynError error;
 }
 Token;
 

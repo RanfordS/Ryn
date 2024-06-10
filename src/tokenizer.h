@@ -2,30 +2,12 @@
 #include "token.h"
 #include "operator.h"
 
-typedef struct s_Tokenizer
-{
-    Token currentToken;
-    char* sourcePath;
-    size_t sourceLength;
-    char* sourceData;
-    size_t line;
-    size_t col;
-    size_t commentDepth;
-    size_t bracketDepth;
-    size_t bracketStackSize;
-    Operator* bracketStackType;
-    size_t* bracketIndex;
-    bool escape;
-}
-Tokenizer;
-
 enum
 {
-    TOKENIZER_SUCCESS,
-    TOKENIZER_ERROR_INCOMPLETE_TOKEN,
+    TOKENIZER_FLAG_CEASE_ON_MISMATCH = 1 << 0,
 };
-typedef uint8_t TokenizerError;
+typedef uint8_t TokenizerFlags;
 
-extern TokenizerError tokenize (size_t length, const char* source, TokenList* list);
+extern RynError tokenize (size_t length, const char* source, TokenList* list, TokenizerFlags flags);
 
 // EOF //
