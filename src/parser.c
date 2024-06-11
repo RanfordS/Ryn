@@ -6,51 +6,63 @@
 // Return value is the token skip
 static size_t parseRecursive (TokenList* tokens, size_t start, size_t end, size_t leftTokenIndex, OperatorContext context)
 {
-    if (start >= end)
-    {
-        //TODO: Error, expected more
-    }
-
-    // if we have two identifiers in a row, we start and arg chain
-    // alternatively, leftTree could be a suffix or prefix operator
-
-    // if previousPrecedence <= current, the sub-tree is our left operator
-    // else we are the sub-tree's right operator
+    if (end <= start) { return 0; }
 
     Token* leftToken = &tokens->data[leftTokenIndex];
     Token* currentToken = &tokens->data[start];
 
-    if (currentToken->type == TOKEN_TYPE_OPERATOR
-    &&  operatorPositions[currentToken->ident] == OPERATOR_POSITION_BRACKET_OPEN)
-    {
-        size_t closingTokenIndex = currentToken->rightIndex;
-        parseRecursive (tokens, start + 1, closingTokenIndex - 1, 0, OPERATOR_CONTEXT_EXPRESSION);
-    }
-
-    bool leftExpectsOperand = false;
-    if (leftToken->type == TOKEN_TYPE_OPERATOR)
-    {
-        OperatorPosition position = operatorPositions[leftToken->ident];
-        if (position != OPERATOR_POSITION_SUFFIX)
-        {
-            leftExpectsOperand = true;
-        }
-    }
-
+    // if this is an operator, coerce it to be correct
     if (currentToken->type == TOKEN_TYPE_OPERATOR)
     {
-        Operator operator;
-        if (!operatorMatchContext (currentToken->ident, context, &operator))
+        bool forcePrefix = false;
+
+        if (leftTokenIndex == 0)
         {
-            currentToken->error = ERROR_PARSER_OPERATOR_INVALID_CONTEXT;
-            return 1;
+            forcePrefix = true;
         }
+        else
+        {
+            Token* previousToken = &tokens->data[start - 1];
+            if (previousToken->type == TOKEN_TYPE_OPERATOR)
+            {
+                OperatorPosition previousPosition
+                    = operatorPositions[previousToken->ident];
+                OperatorPosition currentPosition
+                    = operatorPositions[currentToken->ident];
+                if (previousPosition == OPERATOR_POSITION_INFIX)
+                {
+                    forcePrefix = true;
+                }
+            }
+        }
+
+        Operator newOp;
+        if (forcePrefix)
+        {
+            if (!operatorMatchPositionAndContext (currentToken->ident,
+                OPERATOR_POSITION_PREFIX, context, &newOp))
+            {
+                return ERROR_PARSER_OPERATOR_INVALID_CONTEXT;
+            }
+        }
+        else
+        {
+            if (!operatorMatchContext (currentToken->ident,
+                    context, &newOp))
+            {
+                return ERROR_PARSER_OPERATOR_INVALID_CONTEXT;
+            }
+        }
+        currentToken->ident = newOp;
     }
+
+    //TODO: Continue
 }
 
 RynError parse (TokenList* tokens)
 {
     //TODO: confirm it's just that simple
-    parseRecursive (tokens, 0, tokens->count, 0, OPERATOR_CONTEXT_EXPRESSION);
+    parseRecursive (tokens, 1, tokens->count, 0, OPERATOR_CONTEXT_EXPRESSION);
     return SUCCESS;
 }
+

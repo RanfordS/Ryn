@@ -49,7 +49,8 @@ bool operatorMatchContext (Operator searchStart, OperatorContext context, Operat
     for (Operator i = searchStart; i < OPERATOR_COUNT; ++i)
     {
         if (strcmp (operators[searchStart], operators[i]) == 0
-        &&  operatorContexts[i] == context)
+        &&  (operatorContexts[i] == context
+            || operatorContexts[i] == OPERATOR_CONTEXT_ALWAYS))
         {
             *result = i;
             return true;
@@ -57,3 +58,20 @@ bool operatorMatchContext (Operator searchStart, OperatorContext context, Operat
     }
     return false;
 }
+
+bool operatorMatchPositionAndContext (Operator searchStart, OperatorPosition position, OperatorContext context, Operator* result)
+{
+    for (Operator i = searchStart; i < OPERATOR_COUNT; ++i)
+    {
+        if (strcmp (operators[searchStart], operators[i]) == 0
+        &&  (operatorContexts[i] == context
+            || operatorContexts[i] == OPERATOR_CONTEXT_ALWAYS)
+        &&  operatorPositions[i] == position)
+        {
+            *result = i;
+            return true;
+        }
+    }
+    return false;
+}
+
