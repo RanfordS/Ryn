@@ -146,11 +146,10 @@ Size getRightTokenIndex (TokenList* tokens, Size i)
 //TODO: handle the case of `;` where the right operand is optional
 static RynError parserHandleSide (TokenList* tokens, Token* parent, Size childIndex, RynError missingOperandError)
 {
-    RynError error = SUCCESS;
     if (!childIndex)
     {
-        parent->error = ERROR_PARSER_NO_RHS;
-        return missingOperandError;
+        parent->error = missingOperandError;
+        return ERROR_PARSER_HAD_ERROR;
     }
 
     Token* childToken = &tokens->data[childIndex];
@@ -158,7 +157,7 @@ static RynError parserHandleSide (TokenList* tokens, Token* parent, Size childIn
     if (!parent->error && childToken->error)
     {
         parent->error = ERROR_PARSER_INHERITED;
-        error = ERROR_PARSER_HAD_ERROR;
+        return ERROR_PARSER_HAD_ERROR;
     }
     return SUCCESS;
 }
