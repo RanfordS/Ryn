@@ -13,7 +13,8 @@ typedef struct s_##Type##List\
 Type##List;\
 \
 extern Type##List create##Type##List (Size size);\
-extern void append##Type##List (Type##List* list, Type element);
+extern void append##Type##List (Type##List* list, Type element);\
+extern void delete##Type##List (Type##List* list);\
 
 
 
@@ -39,6 +40,11 @@ extern void append##Type##List (Type##List* list, Type element);
             list->data = realloc (list->data, newSize*sizeof(Type));\
         }\
         list->data[i] = element;\
-    }
+    }\
+    \
+    void delete##Type##List (Type##List* list)\
+    {\
+        free (list->data);\
+    }\
 
 // EOF //
