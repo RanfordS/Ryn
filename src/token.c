@@ -13,7 +13,7 @@ LISTIFY_C(Token)
 
 void tokenListPrint (const char* source, const TokenList* tokenList)
 {
-    for (size_t t = 0; t < tokenList->count; ++t)
+    for (Size t = 0; t < tokenList->count; ++t)
     {
         Token* token = &tokenList->data[t];
         printf ("0x%04llX[%03llu,%02llu] - %s `%.*s` ID=%u\n",

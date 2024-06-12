@@ -9,7 +9,7 @@ enum
     OPERATOR_POSITION_BRACKET_OPEN,
     OPERATOR_POSITION_BRACKET_CLOSE,
 };
-typedef uint8_t OperatorPosition;
+typedef U8 OperatorPosition;
 
 enum
 {
@@ -19,7 +19,7 @@ enum
     OPERATOR_CONTEXT_MATCH,
     OPERATOR_CONTEXT_FOR,
 };
-typedef uint8_t OperatorContext;
+typedef U8 OperatorContext;
 
 enum
 {
@@ -49,7 +49,7 @@ enum
     OPERATOR_PRECEDENCE_SEMICOLON,
     OPERATOR_PRECEDENCE_COUNT,
 };
-typedef uint8_t OperatorPrecedence;
+typedef U8 OperatorPrecedence;
 
 // This list must be kept in order!
 // Sub-sequences must be immediately before their extensions
@@ -140,12 +140,12 @@ enum
     OPERATOR_COUNT,
 #undef X
 };
-typedef uint8_t Operator;
+typedef U8 Operator;
 
 extern const char* const operators[OPERATOR_COUNT];
 extern const OperatorPosition operatorPositions[OPERATOR_COUNT];
 extern const OperatorPrecedence operatorPrecedences[OPERATOR_COUNT];
-extern bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result);
+extern bool operatorFind (Operator searchStart, U8 opLen, const char* opStr, Operator* result);
 extern bool operatorMatchContext (Operator searchStart, OperatorContext context, Operator* result);
 extern bool operatorMatchPositionAndContext (Operator searchStart, OperatorPosition position, OperatorContext context, Operator* result);
 

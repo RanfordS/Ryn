@@ -18,5 +18,5 @@ enum
     ERROR_PARSER_OPERATOR_INVALID_CONTEXT,
     ERROR_PARSER_OPERATOR_EXPECTED,
 };
-typedef uint16_t RynError;
+typedef U16 RynError;
 

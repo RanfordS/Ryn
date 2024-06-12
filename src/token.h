@@ -89,7 +89,7 @@ enum
     TOKEN_TYPE_COUNT,
 #undef X
 };
-typedef uint8_t TokenType;
+typedef U8 TokenType;
 
 extern const char* const tokenType[TOKEN_TYPE_COUNT];
 
@@ -98,23 +98,23 @@ typedef struct s_Token
     //! This is a pointer into the file memory.
     const char* string;
     //! This is the index into the file data the token was found at.
-    size_t index;
-    size_t line;
-    size_t column;
+    Size index;
+    Size line;
+    Size column;
     //! All tokens referring to the same variable should have the same id.
-    uint32_t ident;
+    U32 ident;
     //! Byte length of the token.
-    uint8_t length;
+    U8 length;
     //! Between this and the `id`, all unique tokens can be matched.
     TokenType type;
     //! For operators, index of the left-hand argument.
-    size_t leftIndex;
+    Size leftIndex;
     //! For operators, index of the right-hand argument.
-    size_t rightIndex;
+    Size rightIndex;
     //! Index of the next item in a list.
-    size_t nextIndex;
+    Size nextIndex;
     //! 
-    size_t varType;
+    Size varType;
     RynError error;
     bool parsed;
 }

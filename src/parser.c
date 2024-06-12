@@ -5,7 +5,7 @@
 //TODO: Revisit this approach
 #if 0
 
-static Token* getPreviousToken (TokenList* tokens, size_t i)
+static Token* getPreviousToken (TokenList* tokens, Size i)
 {
     while (0 < --i)
     {
@@ -20,7 +20,7 @@ static Token* getPreviousToken (TokenList* tokens, size_t i)
 // We pass around `count` and `tokens` instead of a `TokenList` so we can take
 // sub-ranges with ease.
 // Return value is the token skip
-static size_t parseRecursive (TokenList* tokens, size_t start, size_t end, size_t leftTokenIndex, OperatorPrecedence precedence, OperatorContext context)
+static Size parseRecursive (TokenList* tokens, Size start, Size end, Size leftTokenIndex, OperatorPrecedence precedence, OperatorContext context)
 {
     // should never result in out-of-bounds as there will always be an end token
     while (tokens->data[start].type == TOKEN_TYPE_COMMENT)
@@ -102,10 +102,10 @@ RynError parse (TokenList* tokens)
 
 #include "listify.h"
 
-LISTIFY_H(size_t);
-LISTIFY_C(size_t);
+LISTIFY_H(Size);
+LISTIFY_C(Size);
 
-size_t getLeftTokenIndex (TokenList* tokens, size_t i)
+Size getLeftTokenIndex (TokenList* tokens, Size i)
 {
     while (0 < --i)
     {
@@ -118,7 +118,7 @@ size_t getLeftTokenIndex (TokenList* tokens, size_t i)
     return 0;
 }
 
-size_t getRightTokenIndex (TokenList* tokens, size_t i)
+Size getRightTokenIndex (TokenList* tokens, Size i)
 {
     while (++i < tokens->count)
     {
@@ -133,25 +133,25 @@ size_t getRightTokenIndex (TokenList* tokens, size_t i)
 
 RynError parse (TokenList* tokens)
 {
-    size_tList tokensByPrecedence[OPERATOR_PRECEDENCE_COUNT];
+    SizeList tokensByPrecedence[OPERATOR_PRECEDENCE_COUNT];
     for (OperatorPrecedence i = 0; i < OPERATOR_PRECEDENCE_COUNT; ++i)
     {
-        tokensByPrecedence[i] = createsize_tList (64);
+        tokensByPrecedence[i] = createSizeList (64);
     }
     
     OperatorContext context = OPERATOR_CONTEXT_EXPRESSION;
-    for (size_t i = 0; i < tokens->count; ++i)
+    for (Size i = 0; i < tokens->count; ++i)
     {
         //TODO: something about tracking the current context
         Token* token = &tokens->data[i];
         if (token->type == TOKEN_TYPE_OPERATOR)
         {
             OperatorPrecedence precedence = operatorPrecedences[token->ident];
-            appendsize_tList (&tokensByPrecedence[precedence], i);
+            appendSizeList (&tokensByPrecedence[precedence], i);
         }
     }
 
-    for (size_t precedence = 0; precedence < OPERATOR_PRECEDENCE_COUNT; ++precedence)
+    for (Size precedence = 0; precedence < OPERATOR_PRECEDENCE_COUNT; ++precedence)
     {
         if (precedence == OPERATOR_PRECEDENCE_ARGUMENT)
         {

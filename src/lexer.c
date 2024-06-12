@@ -6,7 +6,7 @@
 
 typedef struct
 {
-    size_t index;
+    Size index;
     Operator operator;
 }
 BracketItem;
@@ -14,12 +14,12 @@ BracketItem;
 LISTIFY_H(BracketItem)
 LISTIFY_C(BracketItem)
 
-size_t bracketer (TokenList* list)
+Size bracketer (TokenList* list)
 {
     printf ("Running bracketer\n");
     BracketItemList brackets = createBracketItemList (16);
 
-    for (size_t i = 0; i < list->count; ++i)
+    for (Size i = 0; i < list->count; ++i)
     {
         printf ("Considering token %llu\n", i);
         Token* token = list->data + i;
@@ -88,7 +88,7 @@ size_t bracketer (TokenList* list)
 
 
 
-uint8_t lexNumberNonZero (const char* string, uint8_t length)
+U8 lexNumberNonZero (const char* string, U8 length)
 {
     if (length == 0)
     {   return 0; }
@@ -96,7 +96,7 @@ uint8_t lexNumberNonZero (const char* string, uint8_t length)
     if (string[0] < '1' && '9' < string[0])
     {   return 0; }
 
-    for (uint8_t i = 1; i < length; ++i)
+    for (U8 i = 1; i < length; ++i)
     {
         CharClass class = charClassifier (string[i]);
         if (class & CHAR_FLAG_NUMBER)
@@ -106,9 +106,9 @@ uint8_t lexNumberNonZero (const char* string, uint8_t length)
     return length;
 }
 
-uint8_t lexBinary (const char* string, uint8_t length)
+U8 lexBinary (const char* string, U8 length)
 {
-    for (uint8_t i = 0; i < length; ++i)
+    for (U8 i = 0; i < length; ++i)
     {
         char c = string[i];
         if (c == '0'
@@ -119,9 +119,9 @@ uint8_t lexBinary (const char* string, uint8_t length)
     return length;
 }
 
-uint8_t lexOctal (const char* string, uint8_t length)
+U8 lexOctal (const char* string, U8 length)
 {
-    for (uint8_t i = 0; i < length; ++i)
+    for (U8 i = 0; i < length; ++i)
     {
         char c = string[i];
         if ('0' <= c && c <= '7')
@@ -131,9 +131,9 @@ uint8_t lexOctal (const char* string, uint8_t length)
     return length;
 }
 
-uint8_t lexHexadecimal (const char* string, uint8_t length)
+U8 lexHexadecimal (const char* string, U8 length)
 {
-    for (uint8_t i = 0; i < length; ++i)
+    for (U8 i = 0; i < length; ++i)
     {
         char c = string[i];
         if (('0' <= c && c <= '9')
@@ -144,9 +144,9 @@ uint8_t lexHexadecimal (const char* string, uint8_t length)
     return length;
 }
 
-uint8_t lexDecimal (const char* string, uint8_t length)
+U8 lexDecimal (const char* string, U8 length)
 {
-    for (uint8_t i = 0; i < length; ++i)
+    for (U8 i = 0; i < length; ++i)
     {
         if (charClassifier (string[i]) & CHAR_FLAG_NUMBER)
         {   continue; }
@@ -155,7 +155,7 @@ uint8_t lexDecimal (const char* string, uint8_t length)
     return length;
 }
 
-uint8_t lexSpecifier (const char* string, uint8_t length)
+U8 lexSpecifier (const char* string, U8 length)
 {
     switch (string[0])
     {
@@ -185,9 +185,9 @@ uint8_t lexSpecifier (const char* string, uint8_t length)
 ║         ╰─ 0-9 ◄╯                                                                                 ║
 \*                                                                                                 */
 
-uint8_t lexNumberHead (const char* string, uint8_t length)
+U8 lexNumberHead (const char* string, U8 length)
 {
-    uint8_t nonZero = lexNumberNonZero (string, length);
+    U8 nonZero = lexNumberNonZero (string, length);
     if (nonZero != 0)
     {   return nonZero; }
 
@@ -212,7 +212,7 @@ uint8_t lexNumberHead (const char* string, uint8_t length)
     }
 }
 
-uint8_t lexNumberTail (const char* string, uint8_t length)
+U8 lexNumberTail (const char* string, U8 length)
 {
     if (length < 2)
     {   return 0; }
@@ -223,7 +223,7 @@ uint8_t lexNumberTail (const char* string, uint8_t length)
     return 1 + lexDecimal (string + 1, length - 1);
 }
 
-uint8_t lexNumberExponent (const char* string, uint8_t length)
+U8 lexNumberExponent (const char* string, U8 length)
 {
     if (length < 2)
     {   return 0; }
@@ -242,7 +242,7 @@ uint8_t lexNumberExponent (const char* string, uint8_t length)
     return 1 + lexDecimal (string + 1, length - 1);
 }
 
-uint8_t lexNumberSpecifier (const char* string, uint8_t length)
+U8 lexNumberSpecifier (const char* string, U8 length)
 {
     if (length == 0)
     {   return 0; }
@@ -265,22 +265,22 @@ uint8_t lexNumberSpecifier (const char* string, uint8_t length)
     return 1 + lexNumberNonZero (string + 1, length - 1);
 }
 
-uint8_t lexLiteralNumber (Token* token)
+U8 lexLiteralNumber (Token* token)
 {
     const char* string = token->string;
-    uint8_t     length = token->length;
+    U8     length = token->length;
 
-    uint8_t pos = 0;
-    uint8_t headLength = lexNumberHead (string, length);
+    U8 pos = 0;
+    U8 headLength = lexNumberHead (string, length);
     pos += headLength;
 
-    uint8_t tailLength = lexNumberTail (string + pos, length - pos);
+    U8 tailLength = lexNumberTail (string + pos, length - pos);
     pos += tailLength;
     
-    uint8_t exponentLength = lexNumberExponent (string + pos, length - pos);
+    U8 exponentLength = lexNumberExponent (string + pos, length - pos);
     pos += exponentLength;
     
-    uint8_t specifierLength = lexNumberSpecifier (string + pos, length - pos);
+    U8 specifierLength = lexNumberSpecifier (string + pos, length - pos);
     pos += specifierLength;
 
     if (pos != length)
@@ -292,9 +292,9 @@ uint8_t lexLiteralNumber (Token* token)
     return pos;
 }
 
-uint8_t lexNoun (Token* token)
+U8 lexNoun (Token* token)
 {
-    uint8_t length = token->length;
+    U8 length = token->length;
     CharClass class = charClassifier (token->string[0]);
     if (class == CHAR_FLAG_UPPER)
     {
@@ -304,7 +304,7 @@ uint8_t lexNoun (Token* token)
         return length;
     }
 
-    for (size_t i = 0; i < KEYWORD_COUNT; ++i)
+    for (Size i = 0; i < KEYWORD_COUNT; ++i)
     {
         bool match = nstringMatchCstring (length, token->string, keywords[i]);
         if (match)
@@ -321,7 +321,7 @@ uint8_t lexNoun (Token* token)
 
 void lexer (TokenList* list)
 {
-    for (size_t i = 0; i < list->count; ++i)
+    for (Size i = 0; i < list->count; ++i)
     {
         Token* token = list->data + i;
         switch (token->type)

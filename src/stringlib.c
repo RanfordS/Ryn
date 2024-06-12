@@ -1,10 +1,10 @@
 #include "stringlib.h"
 
-bool nstringsMatch (size_t aLen, const char* aStr, size_t bLen, const char* bStr)
+bool nstringsMatch (Size aLen, const char* aStr, Size bLen, const char* bStr)
 {
     if (aLen != bLen) { return false; }
     {
-        for (size_t i = 0; i < aLen; ++i)
+        for (Size i = 0; i < aLen; ++i)
         {
             if (aStr[i] != bStr[i])
             {
@@ -15,9 +15,9 @@ bool nstringsMatch (size_t aLen, const char* aStr, size_t bLen, const char* bStr
     return true;
 }
 
-bool nstringMatchCstring (size_t nLen, const char* const nStr, const char* const cStr)
+bool nstringMatchCstring (Size nLen, const char* const nStr, const char* const cStr)
 {
-    for (size_t i = 0; i < nLen; ++i)
+    for (Size i = 0; i < nLen; ++i)
     {
         if ((cStr[i] != nStr[i])
         ||  (cStr[i] == 0))
@@ -28,7 +28,7 @@ bool nstringMatchCstring (size_t nLen, const char* const nStr, const char* const
     return true;
 }
 
-char* readFile (const char* path, size_t* dataLength)
+char* readFile (const char* path, Size* dataLength)
 {
     FILE* file = fopen (path, "rb");
 

@@ -59,7 +59,7 @@ int main (int argc, char** argv)
     }
     printf ("File = `%s`\n", argv[1]);
 
-    size_t dataLength;
+    Size dataLength;
     char* data = readFile (argv[1], &dataLength);
     if (!data) { return -1; }
 

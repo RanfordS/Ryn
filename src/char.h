@@ -19,6 +19,6 @@ enum
         | CHAR_FLAG_NUMBER
         | CHAR_FLAG_UNDERSCORE,
 };
-typedef uint8_t CharClass;
+typedef U8 CharClass;
 
 extern CharClass charClassifier (char c);

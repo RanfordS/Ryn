@@ -31,7 +31,7 @@ const OperatorPrecedence operatorPrecedences[OPERATOR_COUNT] =
 
 
 
-bool operatorFind (Operator searchStart, uint8_t opLen, const char* opStr, Operator* result)
+bool operatorFind (Operator searchStart, U8 opLen, const char* opStr, Operator* result)
 {
     for (Operator i = searchStart; i < OPERATOR_COUNT; ++i)
     {

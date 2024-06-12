@@ -11,7 +11,7 @@ enum
     TOKENIZER_STATE_END_TOKEN_AFTER,
 };
 
-RynError tokenize (size_t length, const char* source, TokenList* list, TokenizerFlags flags)
+RynError tokenize (Size length, const char* source, TokenList* list, TokenizerFlags flags)
 {
     Token token =
     {
@@ -25,9 +25,9 @@ RynError tokenize (size_t length, const char* source, TokenList* list, Tokenizer
     typeof(token.column) column = 0;
 
     bool escape = false;
-    uint8_t commentDepth = 0;
+    U8 commentDepth = 0;
 
-    for (size_t i = 0; i < length; ++i)
+    for (Size i = 0; i < length; ++i)
     {
         char c = source[i];
         CharClass class = charClassifier (c);
@@ -50,7 +50,7 @@ RynError tokenize (size_t length, const char* source, TokenList* list, Tokenizer
         }
 
         rerun:
-        uint8_t state;
+        U8 state;
         switch (token.type)
         {
             case TOKEN_TYPE_NONE:
@@ -133,7 +133,7 @@ RynError tokenize (size_t length, const char* source, TokenList* list, Tokenizer
 
             case TOKEN_TYPE_OPERATOR:
             {
-                size_t preview = i - token.index + 1;
+                Size preview = i - token.index + 1;
                 const char* string = source + token.index;
                 Operator operator;
                 bool found = operatorFind
