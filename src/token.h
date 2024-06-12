@@ -116,7 +116,7 @@ typedef struct s_Token
     //! 
     Size varType;
     RynError error;
-    bool parsed;
+    bool hasParent;
 }
 Token;
 

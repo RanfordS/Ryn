@@ -21,8 +21,9 @@ void tokenListPrint (const char* source, const TokenList* tokenList)
                 tokenType[token->type],
                 token->length, source + token->index,
                 token->ident);
-        printf ("- index: l=0x%04llX, r=0x%04llX\n",
-                token->leftIndex, token->rightIndex);
+        printf ("- index: l=0x%04llX, r=0x%04llX, n=0x%04llX, p=%i\n\n",
+                token->leftIndex, token->rightIndex, token->nextIndex,
+                token->hasParent);
         //printf ("- flags 0x%02X\n", token->tokenFlags);
     }
 }

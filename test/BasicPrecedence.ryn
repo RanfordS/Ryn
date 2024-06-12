@@ -1,0 +1,4 @@
+y = m*x + c;
+y = a*x*x + b*x + c;
+r = a && b || c! || d@;
+r = f a b + g c@ d

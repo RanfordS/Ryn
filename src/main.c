@@ -7,6 +7,7 @@
 #include "token.h"
 #include "keyword.h"
 #include "lexer.h"
+#include "parser.h"
 
 /*
 __ _0 _1 _2 _3 _4 _5 _6 _7 _8 _9 _A _B _C _D _E _F
@@ -67,10 +68,13 @@ int main (int argc, char** argv)
     tokenize (dataLength, data, &tokenList, 0);
     bracketer (&tokenList);
     lexer (&tokenList);
+    parse (&tokenList);
 
     printf ("\nList of Tokens\n");
     tokenListPrint (data, &tokenList);
 
+
+    deleteTokenList (&tokenList);
     free (data);
 
     return 0;
