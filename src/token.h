@@ -116,6 +116,7 @@ typedef struct s_Token
     //! 
     size_t varType;
     RynError error;
+    bool parsed;
 }
 Token;
 
