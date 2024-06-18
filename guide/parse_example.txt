@@ -1,0 +1,126 @@
+r := f a b + g c@ d + m*x - e;
+
+Get `r`
+Push `r`
+Stack [`r`]
+Next
+
+Get `:=`
+Greater than arg-sep, collapse arguments
+    None
+Pop and Set left of `:=`
+Push `:=`
+Stack [`(r):=`]
+Next
+
+Get `f`
+Push `f`
+Stack [`(r):=`,`f`]
+Next
+
+Get `a`
+Push `a`
+Stack [`(r):=`,`f`,`a`]
+Next
+
+Get `b`
+Push `b`
+Stack [`(r):=`,`f`,`a`,`b`]
+Next
+
+Get `+`
+Greater than arg-sep, collapse arguments
+    Pop and Set next of `a` and Push
+    Stack [`(r):=`,`f`,`a(b)`]
+    Pop and Set next of `f` and Push
+    Stack [`(r):=`,`f(a)(b)`]
+Check precedence of `(r):=`
+Pop and Set left of `+` and Push
+Stack [`(r):=`,`(f(a)(b))+`]
+
+Get `g`
+Push `g`
+Stack [`(r):=`,`(f(a)(b))+`,`g`]
+Next
+
+Get `c`
+Push `c`
+Stack [`(r):=`,`(f(a)(b))+`,`g`,`c`]
+Next
+
+Get `@`
+Pop and Set left of `@` and Push
+Stack [`(r):=`,`(f(a)(b))+`,`g`,`(c)@`]
+Next
+
+Get `d`
+Push `d`
+Stack [`(r):=`,`(f(a)(b))+`,`g`,`(c)@`,`d`]
+Next
+
+Get `+`
+Greater than arg-sep, collapse arguments
+    Pop and Set next of `(c)@` and Push
+    Stack [`(r):=`,`(f(a)(b))+`,`g`,`(c)@(d)`]
+    Pop and Set next of `g` and Push
+    Stack [`(r):=`,`(f(a)(b))+`,`g((c)@)(d)`]
+Check precedence of `(f(a)(b))+`
+Pop and Set right of `(f(a)(b))+` and Push
+Stack [`(r):=`,`(f(a)(b))+(g((c)@)(d))`]
+Pop and Set left of `+` Push
+Stack [`(r):=`,`((f(a)(b))+(g((c)@)(d)))+`]
+Next
+
+Get `m`
+Push `m`
+Stack [`(r):=`,`((f(a)(b))+(g((c)@)(d)))+`,`m`]
+Next
+
+Get `*`
+Greater than arg-sep, collapse arguments
+    None
+Check precedence of `((f(a)(b))+(g((c)@)(d)))+`
+Pop and Set left of `*` and Push
+Stack [`(r):=`,`((f(a)(b))+(g((c)@)(d)))+`,`m*`]
+Next
+
+Get `x`
+Push `x`
+Stack [`(r):=`,`((f(a)(b))+(g((c)@)(d)))+`,`m*`,`x`]
+Next
+
+Get `-`
+Greater than arg-sep, collapse arguments
+    None
+Check precedence of `*`
+Pop and Set right of `m*` and Push
+Stack [`(r):=`,`((f(a)(b))+(g((c)@)(d)))+`,`(m)*(x)`]
+Check precedence of `((f(a)(b))+(g((c)@)(d)))+`
+Pop and Set right of `((f(a)(b))+(g((c)@)(d)))+` and Push
+Check precedence of `(r):=`
+Stack [`(r):=`,`((f(a)(b))+(g((c)@)(d)))+((m)*(x))`]
+Pop and Set left of `-` and Push
+Stack [`(r):=`,`(((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-`]
+Next
+
+Get `e`
+Push  `e`
+Stack [`(r):=`,`(((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-`,`e`]
+Next
+
+Get `;`
+Greater than arg-sep, collapse arguments
+    None
+Check precedence of `(((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-`
+Pop and Set right of `(((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-` and Push
+Stack [`(r):=`,`(((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-(e)`]
+Check precedence of `(r):=`
+Pop and Set right of `(r):=` and Push
+Stack [`(r):=((((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-(e))`,`;`]
+Next
+
+End of input
+Collapse
+`((r):=((((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-(e)));()`
+
+collapse (stack, toPrecedence)
