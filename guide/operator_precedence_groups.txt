@@ -1,27 +1,27 @@
 0 SUFFIX    x! x$ x++ x-- x.x x<<< x>>> x[x] x|[x] x<> x@ x~
-1 PREFIX    +x -x %x ?T []T $T #x
+1 PREFIX    %x ?T []T $T #x
 2 ARGUMENT  Parse Args
-3 ARGFEED   x#>x
-           
-4 MULMATH   x%x x*x x/x
-5 ADDMATH   x+x x-x
-6 SHIFT     x<<x x>>x
-           
-7 RANGE     x->x x->.x
-8 COMPARE   x<x x>x x<=x x>=x x!=x x==x
-           
-9 BITAND    x&x
-A BITXOR    x^x
-B BITOR     x|x
-           
-C LOGICAND  x&&x
-D LOGICXOR  x^^x
-E LOGICOR   x||x
-           
-F ARRAY     x<><x x<>>x x<<>x x><>x x..x
+4 ARGFEED   x#>x
 
-G SLICE     x:x x:+x
-H COMMA     x,x
-I ASSIGN    x%=x x&=x x*=x x+=x x-=x x/=x x::x x:=x x=x x=@x x><x x^=x x^^=x
+5 MULMATH   x%x x*x x/x
+6 ADDMATH   x+x x-x +x -x
+7 SHIFT     x<<x x>>x
+           
+8 RANGE     x->x x->.x
+9 COMPARE   x<x x>x x<=x x>=x x!=x x==x
+           
+A BITAND    x&x
+B BITXOR    x^x
+C BITOR     x|x
+           
+D LOGICAND  x&&x
+E LOGICXOR  x^^x
+F LOGICOR   x||x
+           
+G ARRAY     x<><x x<>>x x<<>x x><>x x..x
+
+H SLICE     x:x x:+x
+I COMMA     x,x
+J ASSIGN    x%=x x&=x x*=x x+=x x-=x x/=x x::x x:=x x=x x=@x x><x x^=x x^^=x
             x>>=x x<<=x
-J SEMI      x;x
+K SEMI      x;x

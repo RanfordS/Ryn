@@ -8,8 +8,7 @@ Next
 Get `:=`
 Greater than arg-sep, collapse arguments
     None
-Pop and Set left of `:=`
-Push `:=`
+Pop and Set left of `:=` and Push
 Stack [`(r):=`]
 Next
 
@@ -124,3 +123,25 @@ Collapse
 `((r):=((((f(a)(b))+(g((c)@)(d)))+((m)*(x)))-(e)));()`
 
 collapse (stack, toPrecedence)
+
+
+
+[`(a)+`,`b`]<`+` -> [`((a)+(b))+`]  alpha 7 == gamma 7
+[`(a)+`,`b`]<`*` -> [`(a)+`,`(b)*`] alpha 7 >= gamma 6
+[`(a)*`,`b`]<`+` -> [`((a)*(b))+`]  alpha 6 <= gamma 7
+[`(a)*`,`b`]<`*` -> [`((a)*(b))*`]  alpha 6 == gamma 6
+
+[`(a)*`,`-`]<`b` -> [`(a)*`,`-`,`b`]
+
+[`(a)*`,`-`,`b`]<`*` -> [`(a)*`,`-`,`(b)*`]
+
+[`(a)*`,`-`,`(b)*`]<`c` -> [`(a)*`,`-`,`(b)*`,`c`]
+-> [`(a)*`,`-`,`(b)*`,`c`]<`+` -> [`(a)*`,`-`,`(b)*(c)`]<`+`
+-> [`(a)*`,`-((b)*(c))`]<`+` -> [`(a)*(-((b)*(c)))`]<`+`
+-> [`((a)*(-((b)*(c))))+`]
+
+[`(a)+`,`(b)*`,`(c).`,`d`]-end -> 
+
+`.` precedence = 1
+`*` precedence = 6
+`+` precedence = 7

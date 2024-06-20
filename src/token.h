@@ -113,15 +113,17 @@ typedef struct s_Token
     Size rightIndex;
     //! Index of the next item in a list.
     Size nextIndex;
+    //! Index of the parent item.
+    Size parentIndex;
     //! 
     Size varType;
     RynError error;
-    bool hasParent;
 }
 Token;
 
 LISTIFY_H(Token)
 
 extern void tokenListPrint (const char* source, const TokenList* tokenList);
+extern void tokenListPrintBracketed (const TokenList* list, Size i, bool chasingNext);
 
 // EOF //

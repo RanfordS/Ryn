@@ -68,14 +68,28 @@ int main (int argc, char** argv)
     tokenize (dataLength, data, &tokenList, 0);
     bracketer (&tokenList);
     lexer (&tokenList);
+
+    printf ("\n~@> PARSING STARTS HERE <@~\n\n");
+
     parse (&tokenList);
 
     printf ("\nList of Tokens\n");
     tokenListPrint (data, &tokenList);
+    for (Size i = 0; i < tokenList.count; ++i)
+    {
+        Token* token = &tokenList.data[i];
+        if (token->parentIndex != 0
+        &&  token->type != TOKEN_TYPE_COMMENT)
+        {   continue; }
+        tokenListPrintBracketed (&tokenList, i, false);
+        printf (" @ %llu\n", i);
+    }
 
 
     deleteTokenList (&tokenList);
     free (data);
+
+    printf ("\nEnd of Program\n");
 
     return 0;
 }
