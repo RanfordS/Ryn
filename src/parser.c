@@ -1,6 +1,4 @@
 #include "parser.h"
-#include "token.h"
-#include "operator.h"
 
 #if 1
 
@@ -9,7 +7,6 @@
 
 // return is the next token index
 
-LISTIFY_H(Size);
 LISTIFY_C(Size);
 
 enum
