@@ -16,6 +16,41 @@ enum
 };
 typedef U8 ParserTokenClass;
 
+enum
+{
+    PARSER_TOKEN_POS_LHS,
+    PARSER_TOKEN_POS_RHS,
+    PARSER_TOKEN_POS_NEXT,
+};
+typedef U8 ParserTokenPosition;
+
+typedef struct s_ParserStackItem
+{
+    Size index;
+    ParserTokenClass class;
+    ParserTokenPosition position;
+}
+ParserStackItem;
+
+static void tokenApply (TokenList* tokens, Size parent, Size child, ParserTokenPosition pos)
+{
+    tokens->data[child].parentIndex = parent;
+    switch (pos)
+    {
+        case PARSER_TOKEN_POS_LHS:
+            tokens->data[parent].leftIndex = child;
+            break;
+
+        case PARSER_TOKEN_POS_RHS:
+            tokens->data[parent].rightIndex = child;
+            break;
+
+        case PARSER_TOKEN_POS_NEXT:
+            tokens->data[parent].nextIndex = child;
+            break;
+    }
+}
+
 static ParserTokenClass tokenClassify (const Token* token, bool isHead)
 {
     printf ("  > tokenClassify: `%.*s` isHead=%i\n", token->length, token->string, isHead);
@@ -142,6 +177,38 @@ void parseReduce (TokenList* tokens, SizeList* stack, OperatorPrecedence precede
     }
 }
 
+Size fetchBlock (TokenList* tokens, Size start)
+{
+    for (Size i = start; i < tokens->count; ++i)
+    {
+        Token* token = &tokens->data[i];
+        if (token->type != TOKEN_TYPE_OPERATOR)
+        {   continue; }
+
+        Operator op = token->ident;
+        if (op == OPERATOR_BLOCK_OPEN
+        ||  op == OPERATOR_END_STATEMENT)
+        {
+            return i;
+        }
+
+        OperatorFlags flags = operatorFlags[op];
+
+        // if we open brackets, skip over them
+        if (flags & OPERAND_LHS_BRACKET)
+        {
+            i = token->rightIndex;
+        }
+        // if we have a close bracket, we should stop
+        else if (flags & OPERAND_RHS_BRACKET)
+        {
+            return 0;
+        }
+
+    }
+    return 0;
+}
+
 static Size subParse (TokenList* tokens, Size start, Size end)
 {
     printf ("subParse called between %llu and %llu\n", start, end);
@@ -149,12 +216,30 @@ static Size subParse (TokenList* tokens, Size start, Size end)
 
     for (Size i = start; i < end; ++i)
     {
-        Token* current = &tokens->data[i];
-        printf ("Token %llu: `%.*s`\n", i, current->length, current->string);
+        Size currentIndex = i;
+        Token* current = &tokens->data[currentIndex];
+        printf ("Token %llu: `%.*s`\n", currentIndex, current->length, current->string);
 
         if (current->type == TOKEN_TYPE_COMMENT)
         {   continue; }
         printf ("Not a comment\n");
+
+        // is this a token that opens a block
+        if (current->type == TOKEN_TYPE_KEYWORD
+        &&  keywordHasBlock[current->ident])
+        {
+            Size blockIndex = fetchBlock (tokens, currentIndex);
+            Token* block = &tokens->data[blockIndex];
+            current->rightIndex = blockIndex;
+            block->parentIndex = currentIndex;
+
+            Size argumentIndex = subParse (tokens, currentIndex + 1, blockIndex);
+            Token* argument = &tokens->data[argumentIndex];
+            current->leftIndex = argumentIndex;
+            argument->parentIndex = currentIndex;
+            i = blockIndex - 1;
+            continue;
+        }
 
         // handle brackets
         if (current->type == TOKEN_TYPE_OPERATOR
@@ -162,8 +247,10 @@ static Size subParse (TokenList* tokens, Size start, Size end)
         {
             printf ("Token is a bracket, process accordingly\n");
             Size closeIndex = current->rightIndex;
-            Size inner = subParse (tokens, i + 1, closeIndex);
-            tokens->data[closeIndex].leftIndex = inner;
+            Size innerIndex = subParse (tokens, currentIndex + 1, closeIndex);
+            tokens->data[innerIndex].parentIndex = closeIndex;
+            tokens->data[closeIndex].leftIndex = innerIndex;
+            i = closeIndex;
         }
 
         ParserTokenClass class = tokenClassify (current, true);
@@ -181,7 +268,7 @@ static Size subParse (TokenList* tokens, Size start, Size end)
                 if (leftClass == PARSER_TOKEN_CLASS_VALUE)
                 {
                     current->leftIndex = topIndex;
-                    top->parentIndex = i;
+                    top->parentIndex = currentIndex;
                     --stack.count;
                 }
             }
@@ -192,7 +279,7 @@ static Size subParse (TokenList* tokens, Size start, Size end)
         }
 
         printf ("Add to stack\n");
-        appendSizeList (&stack, i);
+        appendSizeList (&stack, currentIndex);
         printf ("Current stack:\n[");
         for (Size j = 0; j < stack.count; ++j)
         {
