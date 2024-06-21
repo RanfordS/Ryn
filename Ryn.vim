@@ -1,6 +1,6 @@
 set nospell
 syn keyword Keyword for while return break continue if elseif else match using providing label goto case
-syn match Type "[&?]*\<[A-Z][a-zA-Z0-9_]*\>"
+syn match Type "[$?]*\<[A-Z][a-zA-Z0-9_]*\>"
 syn region Comment start=_(\*_ end=_\*)_ contains=Comment
 syn region String start=_"_ skip=_\\\\\|\\"_ end=_"_
 syn match Special contained containedin=String _\\._
