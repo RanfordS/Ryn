@@ -25,7 +25,7 @@ bool nstringMatchCstring (Size nLen, const char* const nStr, const char* const c
             return false;
         }
     }
-    return true;
+    return cStr[nLen] == 0;
 }
 
 char* readFile (const char* path, Size* dataLength)
