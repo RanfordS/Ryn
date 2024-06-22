@@ -1,7 +1,5 @@
 #include "parser.h"
 
-#if 1
-
 // At any point, if the left hand side doesn't take a right,
 // and current doesn't take a left, then we are chain's next.
 
@@ -11,8 +9,10 @@ LISTIFY_C(Size);
 
 enum
 {
+    PARSER_TOKEN_CLASS_NONE,
     PARSER_TOKEN_CLASS_VALUE,
     PARSER_TOKEN_CLASS_OPERATOR,
+    PARSER_TOKEN_CLASS_KEYWORD,
 };
 typedef U8 ParserTokenClass;
 
@@ -34,6 +34,9 @@ ParserStackItem;
 
 static void tokenApply (TokenList* tokens, Size parent, Size child, ParserTokenPosition pos)
 {
+    if (!child)
+    {   return; }
+
     tokens->data[child].parentIndex = parent;
     switch (pos)
     {
@@ -54,6 +57,14 @@ static void tokenApply (TokenList* tokens, Size parent, Size child, ParserTokenP
 static ParserTokenClass tokenClassify (const Token* token, bool isHead)
 {
     printf ("  > tokenClassify: `%.*s` isHead=%i\n", token->length, token->string, isHead);
+
+    if (token->type == TOKEN_TYPE_KEYWORD
+    &&  keywordHasBlock[token->ident])
+    {
+        printf ("    Is keyword\n");
+        return PARSER_TOKEN_CLASS_KEYWORD;
+    }
+    
     if (token->type != TOKEN_TYPE_OPERATOR)
     {
         printf ("    Not operator, thus value\n");
@@ -173,12 +184,22 @@ void parseReduce (TokenList* tokens, SizeList* stack, OperatorPrecedence precede
             --stack->count;
         }
         else
+        if (betaClass == PARSER_TOKEN_CLASS_KEYWORD
+        &&  precedence > OPERATOR_PRECEDENCE_SEMICOLON)
+        {
+            printf ("  Keyword Rule\n");
+            alpha->nextIndex = betaIndex;
+            beta->parentIndex = alphaIndex;
+            --stack->count;
+        }
+        else
         {   return; }
     }
 }
 
 Size fetchBlock (TokenList* tokens, Size start)
 {
+    printf ("> Fetching block\n");
     for (Size i = start; i < tokens->count; ++i)
     {
         Token* token = &tokens->data[i];
@@ -212,6 +233,8 @@ Size fetchBlock (TokenList* tokens, Size start)
 static Size subParse (TokenList* tokens, Size start, Size end)
 {
     printf ("subParse called between %llu and %llu\n", start, end);
+    if (end <= start)
+    {   return 0; }
     SizeList stack = createSizeList (64);
 
     for (Size i = start; i < end; ++i)
@@ -228,16 +251,15 @@ static Size subParse (TokenList* tokens, Size start, Size end)
         if (current->type == TOKEN_TYPE_KEYWORD
         &&  keywordHasBlock[current->ident])
         {
+            printf ("Token is a keyword that takes a block\n");
             Size blockIndex = fetchBlock (tokens, currentIndex);
-            Token* block = &tokens->data[blockIndex];
-            current->rightIndex = blockIndex;
-            block->parentIndex = currentIndex;
-
             Size argumentIndex = subParse (tokens, currentIndex + 1, blockIndex);
-            Token* argument = &tokens->data[argumentIndex];
-            current->leftIndex = argumentIndex;
-            argument->parentIndex = currentIndex;
+            tokenApply (tokens, currentIndex, argumentIndex, PARSER_TOKEN_POS_LHS);
+            tokenApply (tokens, currentIndex, blockIndex, PARSER_TOKEN_POS_RHS);
+
             i = blockIndex - 1;
+            appendSizeList (&stack, currentIndex);
+            printf ("Block index = %llu, Argument index = %llu\n", blockIndex, argumentIndex);
             continue;
         }
 
@@ -251,6 +273,7 @@ static Size subParse (TokenList* tokens, Size start, Size end)
             tokens->data[innerIndex].parentIndex = closeIndex;
             tokens->data[closeIndex].leftIndex = innerIndex;
             i = closeIndex;
+            continue;
         }
 
         ParserTokenClass class = tokenClassify (current, true);
@@ -291,10 +314,12 @@ static Size subParse (TokenList* tokens, Size start, Size end)
         }
         printf ("]\n\n");
     }
+    printf ("End of subparse, collapsing stack\n");
 
     // collapse all remaining
     parseReduce (tokens, &stack, OPERATOR_PRECEDENCE_COUNT);
 
+    printf ("Final count = %llu\n\n", stack.count);
     Size root = stack.data[0];
     deleteSizeList (&stack);
     return root;
