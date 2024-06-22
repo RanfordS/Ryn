@@ -81,7 +81,7 @@ Size bracketer (TokenList* list)
 
         Token* lhsToken = list->data + lhsBracketItem.index;
         lhsToken->rightIndex = i;
-        token->leftIndex = lhsBracketItem.index;
+        token->parentIndex = lhsBracketItem.index;
     }
     deleteBracketItemList (&brackets);
     return list->count;

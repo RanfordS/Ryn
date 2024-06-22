@@ -13,7 +13,7 @@ syn region Italics start=_\[i|_ end=_\]_ contains=Special,Italics
 
 syn region Ryn start=_{_ end=_}_ contains=Ryn
 syn keyword RynKeyword for while return break continue if elseif else match using providing contained containedin=Ryn
-syn match RynType "[&?]*\<[A-Z][a-zA-Z0-9_]*\>"
+syn match RynType "[$?]*\<[A-Z][a-zA-Z0-9_]*\>" contained containedin=Ryn
 syn region RynComment start=_(\*_ end=_\*)_ contained containedin=Ryn contains=RynComment
 syn region RynString start=_"_ skip=_\\\\\|\\"_ end=_"_ contained containedin=Ryn
 syn match RynSpecial contained containedin=RynString _\\._
@@ -31,3 +31,5 @@ hi link RynComment Comment
 hi link RynString String
 hi link RynSpecial Special
 hi link RynConstant Constant
+hi link RynType Type
+
