@@ -29,27 +29,32 @@ typedef struct s_ParserStackItem
     Size index;
     ParserTokenClass class;
     ParserTokenPosition position;
+    OperatorPrecedence precedence;
 }
-ParserStackItem;
+ParseItem;
 
-static void tokenApply (TokenList* tokens, Size parent, Size child, ParserTokenPosition pos)
+static void tokenApply (TokenList* tokens, Size parentIndex, Size childIndex, ParserTokenPosition pos)
 {
-    if (!child)
+    //TODO: set error codes accordingly
+    if (!childIndex)
     {   return; }
 
-    tokens->data[child].parentIndex = parent;
+    Token* parent = &tokens->data[parentIndex];
+    Token* child  = &tokens->data[childIndex];
+
+    child->parentIndex = parentIndex;
     switch (pos)
     {
         case PARSER_TOKEN_POS_LHS:
-            tokens->data[parent].leftIndex = child;
+            parent->leftIndex = childIndex;
             break;
 
         case PARSER_TOKEN_POS_RHS:
-            tokens->data[parent].rightIndex = child;
+            parent->rightIndex = childIndex;
             break;
 
         case PARSER_TOKEN_POS_NEXT:
-            tokens->data[parent].nextIndex = child;
+            parent->nextIndex = childIndex;
             break;
     }
 }
@@ -166,8 +171,7 @@ void parseReduce (TokenList* tokens, SizeList* stack, OperatorPrecedence precede
                 = operatorPrecedences[alpha->ident];
             if (alphaPrecedence <= precedence)
             {
-                alpha->rightIndex = betaIndex;
-                beta->parentIndex = alphaIndex;
+                tokenApply (tokens, alphaIndex, betaIndex, PARSER_TOKEN_POS_RHS);
                 --stack->count;
             }
             else
@@ -179,8 +183,7 @@ void parseReduce (TokenList* tokens, SizeList* stack, OperatorPrecedence precede
         &&  precedence >= OPERATOR_PRECEDENCE_ARGUMENT)
         {
             printf ("  Argument Rule\n");
-            alpha->nextIndex  = betaIndex;
-            beta->parentIndex = alphaIndex;
+            tokenApply (tokens, alphaIndex, betaIndex, PARSER_TOKEN_POS_NEXT);
             --stack->count;
         }
         else
@@ -188,8 +191,7 @@ void parseReduce (TokenList* tokens, SizeList* stack, OperatorPrecedence precede
         &&  precedence > OPERATOR_PRECEDENCE_SEMICOLON)
         {
             printf ("  Keyword Rule\n");
-            alpha->nextIndex = betaIndex;
-            beta->parentIndex = alphaIndex;
+            tokenApply (tokens, alphaIndex, betaIndex, PARSER_TOKEN_POS_NEXT);
             --stack->count;
         }
         else
@@ -270,8 +272,7 @@ static Size subParse (TokenList* tokens, Size start, Size end)
             printf ("Token is a bracket, process accordingly\n");
             Size closeIndex = current->rightIndex;
             Size innerIndex = subParse (tokens, currentIndex + 1, closeIndex);
-            tokens->data[innerIndex].parentIndex = closeIndex;
-            tokens->data[closeIndex].leftIndex = innerIndex;
+            tokenApply (tokens, closeIndex, innerIndex, PARSER_TOKEN_POS_LHS);
             i = closeIndex;
             continue;
         }
@@ -290,8 +291,7 @@ static Size subParse (TokenList* tokens, Size start, Size end)
 
                 if (leftClass == PARSER_TOKEN_CLASS_VALUE)
                 {
-                    current->leftIndex = topIndex;
-                    top->parentIndex = currentIndex;
+                    tokenApply (tokens, currentIndex, topIndex, PARSER_TOKEN_POS_LHS);
                     --stack.count;
                 }
             }
@@ -310,7 +310,8 @@ static Size subParse (TokenList* tokens, Size start, Size end)
             {
                 printf (",");
             }
-            printf ("%llu", stack.data[j]);
+            Size index = stack.data[j];
+            printf ("%llu=`%.*s`", index, tokens->data[index].length, tokens->data[index].string);
         }
         printf ("]\n\n");
     }
