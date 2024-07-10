@@ -1,334 +1,316 @@
 #include "parser.h"
 
-// At any point, if the left hand side doesn't take a right,
-// and current doesn't take a left, then we are chain's next.
-
-// return is the next token index
-
-LISTIFY_C(Size);
+LISTIFY_C(ParseItem);
 
 enum
 {
-    PARSER_TOKEN_CLASS_NONE,
-    PARSER_TOKEN_CLASS_VALUE,
-    PARSER_TOKEN_CLASS_OPERATOR,
-    PARSER_TOKEN_CLASS_KEYWORD,
+    PARSER_NONE,
+    PARSER_REQUIRED_INTO_RHS,
+    PARSER_REQUIRED_INTO_NEXT,
+    PARSER_OPTIONAL_INTO_RHS,
+    PARSER_OPTIONAL_INTO_NEXT,
 };
-typedef U8 ParserTokenClass;
 
 enum
 {
-    PARSER_TOKEN_POS_LHS,
-    PARSER_TOKEN_POS_RHS,
-    PARSER_TOKEN_POS_NEXT,
-};
-typedef U8 ParserTokenPosition;
+    PARSER_TOKEN_TYPE_VALUE,
+    PARSER_TOKEN_TYPE_OPERATOR,
+    PARSER_TOKEN_TYPE_KEYWORD,
 
-typedef struct s_ParserStackItem
+    PARSER_TOKEN_PAIR_VALUE_VALUE
+        = (PARSER_TOKEN_TYPE_VALUE << 4)
+        |  PARSER_TOKEN_TYPE_VALUE,
+
+    PARSER_TOKEN_PAIR_VALUE_OPERATOR
+        = (PARSER_TOKEN_TYPE_VALUE << 4)
+        |  PARSER_TOKEN_TYPE_OPERATOR,
+
+    PARSER_TOKEN_PAIR_VALUE_KEYWORD
+        = (PARSER_TOKEN_TYPE_VALUE << 4)
+        |  PARSER_TOKEN_TYPE_KEYWORD,
+
+    PARSER_TOKEN_PAIR_OPERATOR_VALUE
+        = (PARSER_TOKEN_TYPE_OPERATOR << 4)
+        |  PARSER_TOKEN_TYPE_VALUE,
+
+    PARSER_TOKEN_PAIR_OPERATOR_OPERATOR
+        = (PARSER_TOKEN_TYPE_OPERATOR << 4)
+        |  PARSER_TOKEN_TYPE_OPERATOR,
+
+    PARSER_TOKEN_PAIR_OPERATOR_KEYWORD
+        = (PARSER_TOKEN_TYPE_OPERATOR << 4)
+        |  PARSER_TOKEN_TYPE_KEYWORD,
+
+    PARSER_TOKEN_PAIR_KEYWORD_VALUE
+        = (PARSER_TOKEN_TYPE_KEYWORD << 4)
+        |  PARSER_TOKEN_TYPE_VALUE,
+
+    PARSER_TOKEN_PAIR_KEYWORD_OPERATOR
+        = (PARSER_TOKEN_TYPE_KEYWORD << 4)
+        |  PARSER_TOKEN_TYPE_OPERATOR,
+
+    PARSER_TOKEN_PAIR_KEYWORD_KEYWORD
+        = (PARSER_TOKEN_TYPE_KEYWORD << 4)
+        |  PARSER_TOKEN_TYPE_KEYWORD,
+
+};
+
+void parsePrintToken (TokenList* tokens, Size i)
 {
-    Size index;
-    ParserTokenClass class;
-    ParserTokenPosition position;
-    OperatorPrecedence precedence;
+    Token* current = &tokens->data[i];
+
+    bool isBracket = false;
+    if (current->type == TOKEN_TYPE_OPERATOR)
+    {
+        OperatorFlags flags = operatorFlags[current->ident];
+        isBracket = !!(flags & OPERAND_FLAG_OPEN_BRACKET);
+    }
+
+    if (isBracket)
+    {
+        Token* close = &tokens->data[current->rightIndex];
+        printf ("%.*s", current->length, current->string);
+        parsePrintToken (tokens, close->leftIndex);
+        printf ("%.*s", close->length,   close->string);
+        return;
+    }
+
+    if (current->leftIndex)
+    {
+        printf ("(");
+        parsePrintToken (tokens, current->leftIndex);
+        printf (")");
+    }
+
+    printf ("%.*s", current->length, current->string);
+
+    if (current->rightIndex)
+    {
+        printf ("(");
+        parsePrintToken (tokens, current->rightIndex);
+        printf (")");
+    }
+
+    Size next = current->nextIndex;
+    while (next)
+    {
+        printf (",");
+        parsePrintToken (tokens, next);
+        next = tokens->data[next].nextIndex;
+    }
 }
-ParseItem;
 
-static void tokenApply (TokenList* tokens, Size parentIndex, Size childIndex, ParserTokenPosition pos)
+void parsePrint (TokenList* tokens, ParseItemList* list)
 {
-    //TODO: set error codes accordingly
-    if (!childIndex)
+    if (list->count == 0)
+    {   printf ("-empty-"); }
+    for (Size i = 0; i < list->count; ++i)
+    {
+        if (i != 0)
+        {   printf (" "); }
+        printf ("%c", "VOK"[list->data[i].type]);
+        printf ("`");
+        parsePrintToken (tokens, list->data[i].index);
+        printf ("`");
+    }
+    printf ("\n");
+}
+
+void parseReduce (TokenList* tokens, ParseItemList* list, OperatorPrecedence precedence)
+{
+    if (list->count < 2)
     {   return; }
 
-    Token* parent = &tokens->data[parentIndex];
-    Token* child  = &tokens->data[childIndex];
+    ParseItem*  leftItem = &list->data[list->count - 2];
+    ParseItem* rightItem = &list->data[list->count - 1];
+    Token* left  = &tokens->data[ leftItem->index];
+    Token* right = &tokens->data[rightItem->index];
+    U8 pairing = (leftItem->type << 4) | rightItem->type;
 
-    child->parentIndex = parentIndex;
-    switch (pos)
+    printf ("Doing parseReduce: %s ", precedenceNames[precedence]);
+
+    switch (pairing)
     {
-        case PARSER_TOKEN_POS_LHS:
-            parent->leftIndex = childIndex;
-            break;
-
-        case PARSER_TOKEN_POS_RHS:
-            parent->rightIndex = childIndex;
-            break;
-
-        case PARSER_TOKEN_POS_NEXT:
-            parent->nextIndex = childIndex;
-            break;
-    }
-}
-
-static ParserTokenClass tokenClassify (const Token* token, bool isHead)
-{
-    printf ("  > tokenClassify: `%.*s` isHead=%i\n", token->length, token->string, isHead);
-
-    if (token->type == TOKEN_TYPE_KEYWORD
-    &&  keywordHasBlock[token->ident])
-    {
-        printf ("    Is keyword\n");
-        return PARSER_TOKEN_CLASS_KEYWORD;
-    }
-    
-    if (token->type != TOKEN_TYPE_OPERATOR)
-    {
-        printf ("    Not operator, thus value\n");
-        return PARSER_TOKEN_CLASS_VALUE;
-    }
-
-    printf ("    Is operator, thus get flags\n");
-    Operator operator = token->ident;
-    OperatorFlags flags = operatorFlags[operator];
-
-    if (isHead)
-    {
-        printf ("    Token is head, check left\n");
-        printf ("    Flags=%i, Masked=%i\n",
-            flags, flags & OPERAND_FLAG_LHS_POSSIBLE);
-        printf ("    leftIndex=%llu\n", token->leftIndex);
-        if (flags & OPERAND_FLAG_LHS_POSSIBLE
-        &&  token->leftIndex == 0)
-        {
-            printf ("    LHS possible and not yet set\n");
-            return PARSER_TOKEN_CLASS_OPERATOR;
-        }
-    }
-    else
-    {
-        printf ("    Token is not head, check right\n");
-        printf ("    Flags=%i, Masked=%i\n",
-            flags, flags & OPERAND_FLAG_RHS_POSSIBLE);
-        printf ("    rightIndex=%llu\n", token->rightIndex);
-        if (flags & OPERAND_FLAG_RHS_POSSIBLE
-        &&  token->rightIndex == 0)
-        {
-            printf ("    LHS possible and not yet set\n");
-            return PARSER_TOKEN_CLASS_OPERATOR;
-        }
-    }
-
-    return PARSER_TOKEN_CLASS_VALUE;
-}
-
-void parseReduce (TokenList* tokens, SizeList* stack, OperatorPrecedence precedence)
-{
-    printf ("> parseReduce called\n");
-    // possible stacks (top only):
-    //
-    //    op     v   op       op
-    // 0 [`(a)+`,`b`]<`+` -> [`((a)+(b))+`]  alpha 7 == gamma 7
-    // 1 [`(a)+`,`b`]<`*` -> [`(a)+`,`(b)*`] alpha 7 >= gamma 6
-    // 2 [`(a)*`,`b`]<`+` -> [`((a)*(b))+`]  alpha 6 <= gamma 7 same as 0
-    // 4 [`(a)*`,`b`]<`*` -> [`((a)*(b))*`]  alpha 6 == gamma 6 identical to 0
-    //
-    // [`((a).(b))*`,`c`]<`+` -> [`(((a).(b))*(c))+`]
-    // [`((a).(b))+`,`c`]<`*` -> [`((a).(b))+`,`(c)*`]
-    // [`(a)*`,`(b).`,`c`]<`+` -> [`(a)*`,`(b).(c)`]<`+`
-    // -> [`(a)*((b).(c))`]<`+` -> [`((a)*((b).(c)))+`]
-    // [`((a)*(b))+`,`c`]<`.` -> [`((a)*(b))+`,`(c).`]
-    // [`(a)+`,`(b).`,`c`]<`*` -> [`(a)+`,`((b).(c))*`]
-    // [`(a)+`,`(b)*`,`c`]<`.` -> [`(a)+`,`(b)*`,`(c).`]
-    //
-    // [`(a)*`,`-`]<`b` -> [`(a)*`,`-`,`b`]
-    // [`(a)*`,`-`,`b`]<`*` -> [`(a)*`,`-`,`(b)*`]
-    // [`(a)*`,`-`,`(b)*`]<`c` -> [`(a)*`,`-`,`(b)*`,`c`]
-    // -> [`(a)*`,`-`,`(b)*`,`c`]<`+` -> [`(a)*`,`-`,`(b)*(c)`]<`+`
-    // -> [`(a)*`,`-((b)*(c))`]<`+` -> [`(a)*(-((b)*(c)))`]<`+`
-    // -> [`((a)*(-((b)*(c))))+`]
-    //
-    // [`(a)+`,`(b)*`,`(c).`,`d`]-end ->
-    //
-    // `.` precedence = 1
-    // `*` precedence = 6
-    // `+` precedence = 7
-
-    // as long as we have two tokens to work with, we can try to reduce the stack
-    while (2 <= stack->count)
-    {
-        printf ("  Iteration\n");
-        Size alphaIndex = stack->data[stack->count - 2];
-        Size betaIndex  = stack->data[stack->count - 1];
-        Token* alpha = &tokens->data[alphaIndex];
-        Token* beta  = &tokens->data[betaIndex];
-        ParserTokenClass alphaClass = tokenClassify (alpha, false);
-        ParserTokenClass betaClass  = tokenClassify (beta,  false);
-
-        printf ("  alphaClass = %s\n",
-                alphaClass == PARSER_TOKEN_CLASS_OPERATOR
-                ? "Operator"
-                : "Value");
-
-        printf ("  betaClass = %s\n",
-                alphaClass == PARSER_TOKEN_CLASS_OPERATOR
-                ? "Operator"
-                : "Value");
-
-        if (alphaClass == PARSER_TOKEN_CLASS_OPERATOR
-        &&  betaClass  == PARSER_TOKEN_CLASS_VALUE)
-        {
-            printf ("  Operator Rule\n");
-            OperatorPrecedence alphaPrecedence
-                = operatorPrecedences[alpha->ident];
-            if (alphaPrecedence <= precedence)
-            {
-                tokenApply (tokens, alphaIndex, betaIndex, PARSER_TOKEN_POS_RHS);
-                --stack->count;
-            }
-            else
+        case PARSER_TOKEN_PAIR_VALUE_VALUE:
+            printf ("V-V\n");
+            if (precedence > OPERATOR_PRECEDENCE_ARGUMENT)
             {   return; }
-        }
-        else
-        if (alphaClass == PARSER_TOKEN_CLASS_VALUE
-        &&  betaClass  == PARSER_TOKEN_CLASS_VALUE
-        &&  precedence >= OPERATOR_PRECEDENCE_ARGUMENT)
-        {
-            printf ("  Argument Rule\n");
-            tokenApply (tokens, alphaIndex, betaIndex, PARSER_TOKEN_POS_NEXT);
-            --stack->count;
-        }
-        else
-        if (betaClass == PARSER_TOKEN_CLASS_KEYWORD
-        &&  precedence > OPERATOR_PRECEDENCE_SEMICOLON)
-        {
-            printf ("  Keyword Rule\n");
-            tokenApply (tokens, alphaIndex, betaIndex, PARSER_TOKEN_POS_NEXT);
-            --stack->count;
-        }
-        else
-        {   return; }
+            left->nextIndex    = rightItem->index;
+            right->parentIndex =  leftItem->index;
+            break;
+
+        case PARSER_TOKEN_PAIR_OPERATOR_VALUE:
+            printf ("V-O\n");
+            if (precedence > leftItem->precedence)
+            {   return; }
+            left->rightIndex   = rightItem->index;
+            right->parentIndex =  leftItem->index;
+            leftItem->type = PARSER_TOKEN_TYPE_VALUE;
+            break;
+
+        case PARSER_TOKEN_PAIR_KEYWORD_KEYWORD:
+            printf ("K-K\n");
+            if (precedence > leftItem->precedence)
+            {   return; }
+            left->nextIndex    = rightItem->index;
+            right->parentIndex =  leftItem->index;
+            break;
+
+        case PARSER_TOKEN_PAIR_KEYWORD_OPERATOR:
+            printf ("K-O UNHANDLED\n");
+            parsePrint (tokens, list);
+            return;
+
+        case PARSER_TOKEN_PAIR_VALUE_KEYWORD:
+            printf ("V-K UNHANDLED\n");
+            parsePrint (tokens, list);
+            return;
+
+        case PARSER_TOKEN_PAIR_VALUE_OPERATOR:
+            printf ("V-O UNHANDLED\n");
+            parsePrint (tokens, list);
+            return;
+
+        case PARSER_TOKEN_PAIR_KEYWORD_VALUE:
+            printf ("K-V\n");
+            if (precedence > OPERATOR_PRECEDENCE_SEMICOLON)
+            {   return; }
+            left->rightIndex   = rightItem->index;
+            right->parentIndex =  leftItem->index;
+            leftItem->type = PARSER_TOKEN_TYPE_VALUE;
+            break;
+
+        case PARSER_TOKEN_PAIR_OPERATOR_KEYWORD:
+            printf ("O-K UNHANDLED\n");
+            parsePrint (tokens, list);
+            return;
+
+        case PARSER_TOKEN_PAIR_OPERATOR_OPERATOR:
+            printf ("O-O UNHANDLED\n");
+            parsePrint (tokens, list);
+            return;
+
     }
+
+    --list->count;
+    parsePrint (tokens, list);
+    return parseReduce (tokens, list, precedence);
 }
 
-Size fetchBlock (TokenList* tokens, Size start)
+Size subParse (TokenList* tokens, Size start, Size end)
 {
-    printf ("> Fetching block\n");
-    for (Size i = start; i < tokens->count; ++i)
-    {
-        Token* token = &tokens->data[i];
-        if (token->type != TOKEN_TYPE_OPERATOR)
-        {   continue; }
-
-        Operator op = token->ident;
-        if (op == OPERATOR_BLOCK_OPEN
-        ||  op == OPERATOR_END_STATEMENT)
-        {
-            return i;
-        }
-
-        OperatorFlags flags = operatorFlags[op];
-
-        // if we open brackets, skip over them
-        if (flags & OPERAND_LHS_BRACKET)
-        {
-            i = token->rightIndex;
-        }
-        // if we have a close bracket, we should stop
-        else if (flags & OPERAND_RHS_BRACKET)
-        {
-            return 0;
-        }
-
-    }
-    return 0;
-}
-
-static Size subParse (TokenList* tokens, Size start, Size end)
-{
-    printf ("subParse called between %llu and %llu\n", start, end);
-    if (end <= start)
-    {   return 0; }
-    SizeList stack = createSizeList (64);
+    printf ("subParse Called\n");
+    ParseItemList list = createParseItemList (64);
 
     for (Size i = start; i < end; ++i)
     {
         Size currentIndex = i;
         Token* current = &tokens->data[currentIndex];
-        printf ("Token %llu: `%.*s`\n", currentIndex, current->length, current->string);
+        printf ("\nsubParse interation begin\n");
+        parsePrint (tokens, &list);
 
-        if (current->type == TOKEN_TYPE_COMMENT)
-        {   continue; }
-        printf ("Not a comment\n");
+        ParseItem item = {.index = i};
 
-        // is this a token that opens a block
-        if (current->type == TOKEN_TYPE_KEYWORD
-        &&  keywordHasBlock[current->ident])
+        switch (current->type)
         {
-            printf ("Token is a keyword that takes a block\n");
-            Size blockIndex = fetchBlock (tokens, currentIndex);
-            Size argumentIndex = subParse (tokens, currentIndex + 1, blockIndex);
-            tokenApply (tokens, currentIndex, argumentIndex, PARSER_TOKEN_POS_LHS);
-            tokenApply (tokens, currentIndex, blockIndex, PARSER_TOKEN_POS_RHS);
+            case TOKEN_TYPE_COMMENT:
+                continue;
 
-            i = blockIndex - 1;
-            appendSizeList (&stack, currentIndex);
-            printf ("Block index = %llu, Argument index = %llu\n", blockIndex, argumentIndex);
-            continue;
-        }
-
-        // handle brackets
-        if (current->type == TOKEN_TYPE_OPERATOR
-        &&  operatorFlags[current->ident] & OPERAND_LHS_BRACKET)
-        {
-            printf ("Token is a bracket, process accordingly\n");
-            Size closeIndex = current->rightIndex;
-            Size innerIndex = subParse (tokens, currentIndex + 1, closeIndex);
-            tokenApply (tokens, closeIndex, innerIndex, PARSER_TOKEN_POS_LHS);
-            i = closeIndex;
-            continue;
-        }
-
-        ParserTokenClass class = tokenClassify (current, true);
-        if (class == PARSER_TOKEN_CLASS_OPERATOR)
-        {
-            printf ("Token is considered an operator\n");
-            OperatorPrecedence precedence = operatorPrecedences[current->ident];
-            parseReduce (tokens, &stack, precedence);
-            if (stack.count > 0)
+            default:
             {
-                Size topIndex = stack.data[stack.count - 1];
-                Token* top = &tokens->data[topIndex];
-                ParserTokenClass leftClass = tokenClassify (top, false);
+                item.type = PARSER_TOKEN_TYPE_VALUE;
+                item.precedence = OPERATOR_PRECEDENCE_ARGUMENT;
+                appendParseItemList (&list, item);
+            }
+            break;
 
-                if (leftClass == PARSER_TOKEN_CLASS_VALUE)
+            case TOKEN_TYPE_OPERATOR:
+            {
+                Operator op = current->ident;
+                OperatorFlags flags = operatorFlags[op];
+
+                if (flags & OPERAND_LHS_BRACKET)
                 {
-                    tokenApply (tokens, currentIndex, topIndex, PARSER_TOKEN_POS_LHS);
-                    --stack.count;
+                    Size closeIndex = current->rightIndex;
+                    Size inner = subParse (tokens, currentIndex + 1, closeIndex);
+                    tokens->data[closeIndex].leftIndex = inner;
+                    tokens->data[inner].parentIndex = closeIndex;
+                    item.type = PARSER_TOKEN_TYPE_VALUE;
+                    item.precedence = OPERATOR_PRECEDENCE_ARGUMENT;
+                    appendParseItemList (&list, item);
+                    i = closeIndex;
+                    break;
                 }
-            }
-        }
-        else
-        {
-            printf ("Token is considered a value\n");
-        }
 
-        printf ("Add to stack\n");
-        appendSizeList (&stack, currentIndex);
-        printf ("Current stack:\n[");
-        for (Size j = 0; j < stack.count; ++j)
-        {
-            if (j > 0)
+                OperatorPrecedence precedence = operatorPrecedences[op];
+                parseReduce (tokens, &list, precedence);
+                if (flags & OPERAND_MASK_LHS_SEARCH)
+                {
+                    ParseItem* top = &list.data[list.count - 1];
+                    if (top->type == PARSER_TOKEN_TYPE_VALUE)
+                    {
+                        --list.count;
+                        current->leftIndex = top->index;
+                        tokens->data[top->index].parentIndex = currentIndex;
+                    }
+                }
+                if (flags & OPERAND_MASK_RHS_SEARCH)
+                {
+                    item.type = PARSER_TOKEN_TYPE_OPERATOR;
+                    item.precedence = precedence;
+                }
+                else
+                {
+                    item.type = PARSER_TOKEN_TYPE_VALUE;
+                    item.precedence = OPERATOR_PRECEDENCE_ARGUMENT;
+                }
+                appendParseItemList (&list, item);
+            }
+            break;
+
+            case TOKEN_TYPE_KEYWORD:
             {
-                printf (",");
+                printf ("Keyword encountered\n");
+                OperatorPrecedence precedence = OPERATOR_PRECEDENCE_SEMICOLON;
+                parseReduce (tokens, &list, precedence);
+                if (keywordHasBlock[current->ident])
+                {
+                    Size nextIndex = i;
+                    while (true)
+                    {
+                        if (tokens->data[nextIndex].type == TOKEN_TYPE_OPERATOR
+                        &&  tokens->data[nextIndex].ident == OPERATOR_BLOCK_OPEN)
+                        {
+                            break;
+                        }
+                        ++nextIndex;
+                    }
+                    printf ("Block found at %llu\n", nextIndex);
+                    Size inner = subParse (tokens, currentIndex + 1, nextIndex);
+                    current->leftIndex = inner;
+                    tokens->data[inner].parentIndex = currentIndex;
+                    i = nextIndex - 1;
+                }
+
+                item.type = PARSER_TOKEN_TYPE_KEYWORD;
+                item.precedence = precedence;
+                appendParseItemList (&list, item);
             }
-            Size index = stack.data[j];
-            printf ("%llu=`%.*s`", index, tokens->data[index].length, tokens->data[index].string);
+            break;
+
         }
-        printf ("]\n\n");
     }
-    printf ("End of subparse, collapsing stack\n");
 
-    // collapse all remaining
-    parseReduce (tokens, &stack, OPERATOR_PRECEDENCE_COUNT);
-
-    printf ("Final count = %llu\n\n", stack.count);
-    Size root = stack.data[0];
-    deleteSizeList (&stack);
-    return root;
+    printf ("Exit reduce\n");
+    parseReduce (tokens, &list, 0);
+    printf ("Leaving subParse\n");
+    if (list.count == 0)
+    {   return 0; }
+    return list.data[0].index;
 }
 
 RynError parse (TokenList* tokens)
 {
-    printf ("Outer parse function called\n\n");
     subParse (tokens, 1, tokens->count - 1);
     return SUCCESS;
 }

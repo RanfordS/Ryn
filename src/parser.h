@@ -4,7 +4,15 @@
 #include "token.h"
 #include "keyword.h"
 
-LISTIFY_H(Size);
+typedef struct s_ParseItem
+{
+    Size index;
+    U8 type;
+    OperatorPrecedence precedence;
+}
+ParseItem;
+
+LISTIFY_H(ParseItem);
 
 extern RynError parse (TokenList* tokens);
 

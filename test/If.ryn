@@ -1,0 +1,5 @@
+a;
+if b { c }
+elseif d { e }
+else { f }
+g

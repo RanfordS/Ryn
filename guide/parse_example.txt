@@ -125,6 +125,101 @@ Collapse
 collapse (stack, toPrecedence)
 
 
+max :: Func a b Int -> Int { if a < b { return a } else { return b } }
+
+
+a = b@; if f a < c { return a } else { return c } d; e
+((((a)=(c));(((f,a)<(b))if({(return,a)}),else({(return,a)}),d)));(e)
+
+Get `a`
+Not operator, no reduce
+Push `a` With
+    queue = optional_into_next
+    precedence = argument
+    type = value
+[`a`]
+
+Get `=`
+Operator received, Reduce to assign (nop)
+Accepts lhs
+    Check top.queue, they are optional
+        Pop top into lhs
+Push `=` With
+    queue = required_into_rhs
+    precedence = assign
+    type = operator
+[`(a)=`]
+
+Get `b`
+Not operator, no reduce
+Push `b` With
+    queue = optional_into_next
+    precedence = argument
+    type = value
+[`(a)=`,`b`]
+
+Get `@`
+Operator received, Reduce to suffix (nop)
+Accepts lhs
+    Check top.queue, they are optional
+        Pop top into lhs
+Push `@` With
+    queue = optional_into_next
+    precedence = argument
+    type = value
+[`(a)=`,`(b)@`]
+
+Get `;`
+Operator received, Reduce to semicolon
+    Reduction is greater than argument
+    [`(a)=((b)@)`]
+Accepts lhs
+    Check top.queue, they are empty
+        Pop top into lhs
+Push `;` With
+    queue = optional_into_rhs
+    precedence = semicolon
+    type = operator
+[`((a)=((b)@));`]
+
+Get `if`
+Keyword received, Reduce to keyword
+    Subparse til block, set lhs
+    Subparse block, set rhs
+Push `if` With
+    queue = optional_into_next
+    precedence = keyword
+    type = keyword
+[`((a)=((b)@));`,`((f,a)<(c))if({(return,a)})`]
+
+Get `else`
+Keyword received, Reduce to keyword
+    Subparse til block, expect 0
+    Subparse block, set rhs
+Push `else` With
+    queue = optional_into_next
+    precedence = keyword
+    type = keyword
+[`((a)=((b)@));`,`((f,a)<(c))if({(return,a)})`,`else({(return,b)})`]
+
+Get `d`
+Not operator, no reduce
+Push `d` With
+    queue = optional_into_next
+    precedence = argument
+[`((a)=((b)@));`,`((f,a)<(c))if({(return,a)})`,`else({(return,b)})`,`d`]
+
+Get `;`
+Operator received, Reduce to semicolon
+    Reduction is greater than argument
+    [`((a)=((b)@));(((f,a)<(c))if({(return,a)}),else({(return,b)}),d)`]
+Accepts lhs
+    Check top.queue, they are empty
+        Pop top into lhs
+Push `;` With
+    queue = optional_into_rhs
+    precedence = semicolon
+
 
 [`(a)+`,`b`]<`+` -> [`((a)+(b))+`]  alpha 7 == gamma 7
 [`(a)+`,`b`]<`*` -> [`(a)+`,`(b)*`] alpha 7 >= gamma 6
